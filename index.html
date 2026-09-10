@@ -1,1 +1,1983 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Bitcoin wallet interface – self-custody made clear">
+  <title>Northstar Bitcoin Wallet</title>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- QR library (production: self-host) -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    /* ===== RESET & BASE ===== */
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: #090d14;
+      color: #f4f6f8;
+      font-family: 'Inter', system-ui, sans-serif;
+      line-height: 1.55;
+    }
+
+    body.wallet-active {
+      overflow: hidden;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button, input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    /* ===== TOPBAR ===== */
+    .topbar {
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 6vw;
+      border-bottom: 1px solid #1d2530;
+      position: sticky;
+      top: 0;
+      background: rgba(9,13,20,.88);
+      backdrop-filter: blur(16px);
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      letter-spacing: -.03em;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: #e6ad43;
+      color: #111;
+      font-weight: 900;
+    }
+
+    .brand-mark.large {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    .topbar nav {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      color: #aeb7c4;
+      font-size: 14px;
+    }
+
+    .topbar nav a:hover {
+      color: #fff;
+    }
+
+    .nav-login {
+      border: 0;
+      background: #e6ad43;
+      color: #111;
+      padding: 11px 17px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+
+    /* ===== SECTIONS ===== */
+    .section {
+      max-width: 1180px;
+      margin: auto;
+      padding: 92px 6vw;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 70px;
+      align-items: center;
+      min-height: 690px;
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: .17em;
+      font-weight: 800;
+      color: #d2a14a;
+    }
+
+    .hero h1 {
+      font-size: clamp(48px, 7vw, 88px);
+      line-height: .98;
+      letter-spacing: -.065em;
+      margin: 18px 0 25px;
+    }
+
+    .hero h1 span {
+      color: #e6ad43;
+    }
+
+    .hero-copy > p {
+      color: #aab3c0;
+      max-width: 650px;
+      font-size: 18px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      margin: 30px 0;
+    }
+
+    .btn {
+      border: 1px solid #303947;
+      border-radius: 11px;
+      padding: 12px 18px;
+      background: transparent;
+      color: #f5f7fa;
+      font-weight: 700;
+      transition: .2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: #596577;
+    }
+
+    .btn.primary {
+      background: #e6ad43;
+      border-color: #e6ad43;
+      color: #111;
+    }
+
+    .btn.ghost.light {
+      background: #fff;
+      color: #111;
+      border-color: #fff;
+    }
+
+    .full {
+      width: 100%;
+    }
+
+    .trust-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      color: #707c8c;
+      font-size: 12px;
+    }
+
+    /* ===== CARDS ===== */
+    .price-card,
+    .feature-card,
+    .security,
+    .auth-card,
+    .balance-card,
+    .mini-card,
+    .panel {
+      border: 1px solid #252e3a;
+      background: linear-gradient(145deg, #111823, #0d131c);
+      box-shadow: 0 22px 70px rgba(0,0,0,.22);
+    }
+
+    .price-card {
+      padding: 28px;
+      border-radius: 22px;
+    }
+
+    .price-head,
+    .balance-top,
+    .panel-head,
+    .dashboard-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    .price-head {
+      color: #aeb7c4;
+    }
+
+    .status-dot {
+      color: #73c991;
+      font-size: 12px;
+    }
+
+    .big-price {
+      font-size: 45px;
+      font-weight: 800;
+      letter-spacing: -.04em;
+      margin: 30px 0 2px;
+    }
+
+    .price-change {
+      font-size: 14px;
+      color: #73c991;
+    }
+
+    .sparkline {
+      height: 100px;
+      display: flex;
+      align-items: flex-end;
+      gap: 7px;
+      margin: 20px 0;
+    }
+
+    .sparkline i {
+      flex: 1;
+      border-radius: 6px 6px 2px 2px;
+      background: #e6ad43;
+      opacity: .7;
+    }
+
+    .sparkline i:nth-child(1) { height: 35%; }
+    .sparkline i:nth-child(2) { height: 46%; }
+    .sparkline i:nth-child(3) { height: 39%; }
+    .sparkline i:nth-child(4) { height: 62%; }
+    .sparkline i:nth-child(5) { height: 54%; }
+    .sparkline i:nth-child(6) { height: 76%; }
+    .sparkline i:nth-child(7) { height: 68%; }
+    .sparkline i:nth-child(8) { height: 83%; }
+    .sparkline i:nth-child(9) { height: 72%; }
+    .sparkline i:nth-child(10) { height: 91%; }
+
+    .price-card small {
+      color: #687383;
+    }
+
+    .section-heading {
+      max-width: 700px;
+      margin-bottom: 35px;
+    }
+
+    .section h2 {
+      font-size: clamp(32px, 4vw, 50px);
+      line-height: 1.05;
+      letter-spacing: -.04em;
+      margin: 10px 0 0;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .feature-card {
+      padding: 28px;
+      border-radius: 16px;
+      min-height: 190px;
+    }
+
+    .feature-card b {
+      color: #657080;
+      font-size: 12px;
+    }
+
+    .feature-card h3 {
+      margin: 40px 0 8px;
+    }
+
+    .feature-card p,
+    .security p,
+    .muted {
+      color: #8f9baa;
+    }
+
+    .security {
+      border-radius: 22px;
+      padding: 45px;
+      margin-bottom: 80px;
+    }
+
+    .security p {
+      max-width: 800px;
+    }
+
+    /* ===== UTILITY ===== */
+    .hidden {
+      display: none !important;
+    }
+
+    .view {
+      min-height: calc(100vh - 76px);
+      padding-top: 80px;
+    }
+
+    /* ===== LOGIN ===== */
+    .auth-card {
+      max-width: 440px;
+      margin: 0 auto;
+      border-radius: 22px;
+      padding: 36px;
+    }
+
+    .auth-card h2 {
+      margin: 0 0 6px;
+      font-size: 34px;
+    }
+
+    .auth-card form {
+      display: grid;
+      gap: 18px;
+      margin: 28px 0;
+    }
+
+    .auth-card label,
+    .modal label {
+      display: grid;
+      gap: 7px;
+      color: #aeb7c4;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .auth-card input,
+    .modal input {
+      width: 100%;
+      border: 1px solid #303947;
+      background: #0a1018;
+      color: #fff;
+      padding: 13px;
+      border-radius: 10px;
+      outline: none;
+    }
+
+    .auth-card input:focus,
+    .modal input:focus {
+      border-color: #e6ad43;
+    }
+
+    .form-error {
+      color: #ef8e8e;
+      font-size: 13px;
+      min-height: 18px;
+    }
+
+    .text-button {
+      border: 0;
+      background: none;
+      color: #8f9baa;
+    }
+
+    /* ===== DASHBOARD ===== */
+
+    /*
+      Wallet is now a true application layer.
+      It is positioned above the landing page instead of being rendered
+      as a section underneath it.
+    */
+    #wallet.view {
+      position: fixed;
+      inset: 76px 0 0 0;
+      z-index: 20;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      overflow-y: auto;
+      background: #090d14;
+      padding-top: 80px;
+      padding-bottom: 80px;
+    }
+
+    #wallet.view > * {
+      max-width: 1250px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .dashboard {
+      max-width: 1250px;
+    }
+
+    .dashboard-head {
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .dashboard-head h2 {
+      font-size: 36px;
+      margin: 5px 0;
+    }
+
+    .balance-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    .balance-card {
+      border-radius: 20px;
+      padding: 28px;
+    }
+
+    .balance {
+      font-size: 52px;
+      font-weight: 800;
+      letter-spacing: -.05em;
+      margin: 18px 0 0;
+    }
+
+    .balance-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 25px;
+    }
+
+    .toggle,
+    .pill {
+      border: 1px solid #303947;
+      background: #151d27;
+      color: #bfc8d3;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 11px;
+    }
+
+    .mini-card {
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 7px;
+    }
+
+    .mini-card span {
+      color: #7f8a99;
+      font-size: 12px;
+    }
+
+    .mini-card strong {
+      font-size: 17px;
+    }
+
+    .mini-card small {
+      color: #6f7a89;
+    }
+
+    .wallet-grid {
+      display: grid;
+      grid-template-columns: .75fr 1.25fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .panel {
+      border-radius: 20px;
+      padding: 25px;
+    }
+
+    .panel-head h3 {
+      margin: 4px 0 0;
+    }
+
+    .icon-btn {
+      background: none;
+      border: 1px solid #303947;
+      color: #cdd5df;
+      border-radius: 9px;
+      padding: 8px;
+    }
+
+    .qr {
+      background: #fff;
+      padding: 12px;
+      width: 190px;
+      height: 190px;
+      display: grid;
+      place-items: center;
+      margin: 25px auto;
+      border-radius: 12px;
+    }
+
+    .qr img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .address-panel code,
+    .modal code {
+      display: block;
+      word-break: break-all;
+      color: #9ea9b8;
+      font-size: 11px;
+      background: #0a1018;
+      padding: 12px;
+      border-radius: 9px;
+      margin-bottom: 12px;
+    }
+
+    /* ===== TRANSACTIONS ===== */
+    .transactions {
+      margin-top: 15px;
+    }
+
+    .tx {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 0;
+      border-bottom: 1px solid #222b36;
+    }
+
+    .tx:last-child {
+      border-bottom: 0;
+    }
+
+    .tx-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 11px;
+      display: grid;
+      place-items: center;
+      background: #17202c;
+      color: #e6ad43;
+    }
+
+    .tx-title {
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .tx-sub {
+      font-size: 11px;
+      color: #717d8c;
+    }
+
+    .tx-amount {
+      text-align: right;
+      font-weight: 700;
+    }
+
+    .received {
+      color: #72c995;
+    }
+
+    .sent {
+      color: #e78d8d;
+    }
+
+    /* ===== MODALS ===== */
+    dialog {
+      border: 1px solid #303947;
+      border-radius: 20px;
+      background: #101720;
+      color: #fff;
+      width: min(94vw, 450px);
+      padding: 0;
+      box-shadow: 0 30px 100px #000;
+    }
+
+    .modal {
+      padding: 30px;
+      position: relative;
+    }
+
+    .modal h2 {
+      margin: 6px 0 24px;
+    }
+
+    .close {
+      position: absolute;
+      right: 18px;
+      top: 15px;
+      background: none;
+      border: 0;
+      color: #aeb7c4;
+      font-size: 28px;
+    }
+
+    .warning {
+      border: 1px solid #5b4828;
+      background: #2b2112;
+      color: #e4bc6e;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 12px;
+      margin: 20px 0;
+    }
+
+    .modal output {
+      float: right;
+      color: #e6ad43;
+    }
+
+    .modal input[type="range"] {
+      padding: 0;
+      accent-color: #e6ad43;
+    }
+
+    .modal::backdrop {
+      background: rgba(0,0,0,.72);
+      backdrop-filter: blur(5px);
+    }
+
+    /* ===== SERVICE UNAVAILABLE DIALOG ===== */
+    #service-unavailable-modal {
+      width: min(94vw, 430px);
+    }
+
+    .service-error {
+      padding: 32px;
+      text-align: center;
+    }
+
+    .service-error-icon {
+      width: 54px;
+      height: 54px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 18px;
+      border-radius: 16px;
+      background: #2b2112;
+      color: #e6ad43;
+      font-size: 25px;
+      font-weight: 800;
+    }
+
+    .service-error h2 {
+      margin: 0 0 10px;
+      font-size: 25px;
+    }
+
+    .service-error p {
+      color: #8f9baa;
+      font-size: 14px;
+      margin: 0 0 24px;
+    }
+
+    /* ===== FOOTER ===== */
+    footer {
+      border-top: 1px solid #1d2530;
+      padding: 30px 6vw;
+      color: #626d7b;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    footer .legal a {
+      color: #8f9baa;
+      margin: 0 10px 0 0;
+    }
+
+    footer .legal a:hover {
+      color: #fff;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 850px) {
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 35px;
+        min-height: auto;
+      }
+
+      .feature-grid,
+      .balance-grid,
+      .wallet-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        padding: 0 4vw;
+      }
+
+      .topbar nav a {
+        display: none;
+      }
+
+      .section {
+        padding: 65px 5vw;
+      }
+
+      .balance {
+        font-size: 42px;
+      }
+
+      #wallet.view {
+        inset: 76px 0 0 0;
+        padding-top: 65px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero h1 {
+        font-size: 48px;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+      }
+
+      .hero-actions .btn {
+        text-align: center;
+      }
+
+      .price-card {
+        padding: 22px;
+      }
+
+      .balance-actions {
+        flex-direction: column;
+      }
+
+      .dashboard-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      #wallet.view {
+        padding-top: 50px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ===== TOPBAR ===== -->
+  <header class="topbar">
+    <a class="brand" href="#home" aria-label="Northstar home">
+      <span class="brand-mark">₿</span>
+      <span>Northstar</span>
+    </a>
+
+    <nav aria-label="Primary navigation">
+      <a href="#home">Home</a>
+      <a href="#security">Security</a>
+      <button class="nav-login" data-view="login">Open wallet</button>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ===== HERO ===== -->
+    <section id="home" class="hero section">
+      <div class="hero-copy">
+        <span class="eyebrow">BITCOIN • SELF-CUSTODY WALLET</span>
+
+        <h1>
+          Your bitcoin.<br>
+          <span>Clearer control.</span>
+        </h1>
+
+        <p>
+          A polished wallet experience for viewing balances, receiving BTC, and
+          preparing transactions – with full transparency and security built in.
+        </p>
+
+        <div class="hero-actions">
+          <button class="btn primary" data-view="login">Open wallet</button>
+          <a class="btn ghost" href="#security">Explore security</a>
+        </div>
+
+        <div class="trust-row">
+          <span>● Self-custody</span>
+          <span>● Open source</span>
+          <span>● Audited</span>
+        </div>
+      </div>
+
+      <div class="price-card" aria-live="polite">
+        <div class="price-head">
+          <span>Bitcoin</span>
+          <span id="price-status" class="status-dot">● Live</span>
+        </div>
+
+        <div id="btc-price" class="big-price">Loading…</div>
+        <div id="btc-change" class="price-change">Fetching market data</div>
+
+        <div class="sparkline" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+
+        <small>Source: CoinGecko · updates every 30s</small>
+
+        <div
+          id="price-timestamp"
+          style="margin-top:4px; font-size:10px; color:#5a667a;">
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== FEATURES ===== -->
+    <section class="features section">
+      <div class="section-heading">
+        <span class="eyebrow">DESIGNED FOR CLARITY</span>
+        <h2>Everything important, one glance away.</h2>
+      </div>
+
+      <div class="feature-grid">
+        <article class="feature-card">
+          <b>01</b>
+          <h3>Simple balances</h3>
+          <p>Switch between USD and BTC without losing context.</p>
+        </article>
+
+        <article class="feature-card">
+          <b>02</b>
+          <h3>Receive securely</h3>
+          <p>Display a wallet address and generate a scannable QR code.</p>
+        </article>
+
+        <article class="feature-card">
+          <b>03</b>
+          <h3>Transaction control</h3>
+          <p>Review amount, network fee and confirmations before sending.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===== SECURITY ===== -->
+    <section id="security" class="security section">
+      <div>
+        <span class="eyebrow">SECURITY FIRST</span>
+
+        <h2>Industry-standard protection for your bitcoin.</h2>
+
+        <p>
+          Northstar uses military-grade encryption, multi-signature support,
+          and hardware wallet integration. Your private keys never leave your
+          device, and every transaction is signed locally.
+        </p>
+      </div>
+    </section>
+
+    <!-- ===== LOGIN ===== -->
+    <section
+      id="login"
+      class="view section hidden"
+      aria-labelledby="login-title">
+
+      <div class="auth-card">
+        <span class="brand-mark large">₿</span>
+
+        <span class="eyebrow">SECURE ACCESS</span>
+
+        <h2 id="login-title">Welcome back</h2>
+
+        <p class="muted">
+          Sign in to your Northstar wallet.
+        </p>
+
+        <form id="login-form" novalidate>
+
+          <label>
+            Email
+            <input
+              id="email"
+              type="email"
+              autocomplete="email"
+              placeholder="you@example.com"
+              required>
+          </label>
+
+          <label>
+            Password
+            <input
+              id="password"
+              type="password"
+              autocomplete="current-password"
+              placeholder="Password"
+              required>
+          </label>
+
+          <div
+            id="login-error"
+            class="form-error"
+            role="alert">
+          </div>
+
+          <button
+            class="btn primary full"
+            type="submit">
+            Continue
+          </button>
+        </form>
+
+        <button
+          id="back-home"
+          class="text-button"
+          data-view="home">
+          ← Back to home
+        </button>
+      </div>
+    </section>
+
+    <!-- ===== WALLET ===== -->
+    <section
+      id="wallet"
+      class="view dashboard section hidden"
+      aria-labelledby="wallet-title"
+      aria-modal="true"
+      role="dialog">
+
+      <div class="dashboard-head">
+        <div>
+          <span class="eyebrow">PERSONAL WALLET</span>
+
+          <h2 id="wallet-title" tabindex="-1">
+            Good to see you, Susan Fitzpatrick.
+          </h2>
+        </div>
+
+        <button
+          id="logout"
+          class="btn ghost">
+          Log out
+        </button>
+      </div>
+
+      <div class="balance-grid">
+
+        <article class="balance-card">
+          <div class="balance-top">
+            <span>Total balance</span>
+
+            <button
+              id="currency-toggle"
+              class="toggle"
+              type="button">
+              USD / BTC
+            </button>
+          </div>
+
+          <div
+            id="balance-main"
+            class="balance">
+            $1,789,513.00
+          </div>
+
+          <div
+            id="balance-sub"
+            class="muted">
+            ≈ 34.13 BTC
+          </div>
+
+          <div class="balance-actions">
+
+            <!-- SEND: deliberately handled by the service-unavailable guard -->
+            <button
+              class="btn primary"
+              id="send-btn"
+              type="button">
+              Send
+            </button>
+
+            <button
+              class="btn ghost light"
+              data-modal="receive">
+              Receive
+            </button>
+
+          </div>
+        </article>
+
+        <article class="mini-card">
+          <span>Network</span>
+          <strong>Bitcoin Mainnet</strong>
+          <small>Healthy · ~10 min blocks</small>
+        </article>
+
+        <article class="mini-card">
+          <span>Security</span>
+          <strong>Encrypted</strong>
+          <small>Keys never stored</small>
+        </article>
+
+      </div>
+
+      <div class="wallet-grid">
+
+        <article class="panel address-panel">
+
+          <div class="panel-head">
+            <div>
+              <span class="eyebrow">RECEIVE</span>
+              <h3>Your Bitcoin address</h3>
+            </div>
+
+            <button
+              id="copy-address"
+              class="icon-btn"
+              title="Copy address"
+              aria-label="Copy Bitcoin address">
+              ⧉
+            </button>
+          </div>
+
+          <div
+            class="qr"
+            id="qrcode"
+            aria-label="QR code for Bitcoin address">
+          </div>
+
+          <code id="btc-address">
+            32runr2gL5Xsk8xYsn92GTbF5WST1jYowE
+          </code>
+
+          <button
+            id="copy-address-2"
+            class="btn ghost full light">
+            Copy address
+          </button>
+
+        </article>
+
+        <article class="panel">
+
+          <div class="panel-head">
+            <div>
+              <span class="eyebrow">ACTIVITY</span>
+              <h3>Recent transactions</h3>
+            </div>
+
+            <span
+              class="pill"
+              id="tx-count">
+              6 items
+            </span>
+          </div>
+
+          <div
+            id="transactions"
+            class="transactions">
+          </div>
+
+        </article>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== SEND MODAL ===== -->
+  <!-- Retained for design/functionality, but Send is blocked before this opens. -->
+  <dialog id="send-modal">
+    <form method="dialog" class="modal">
+
+      <button
+        class="close"
+        aria-label="Close">
+        ×
+      </button>
+
+      <span class="eyebrow">SEND BITCOIN</span>
+
+      <h2>Prepare transaction</h2>
+
+      <label>
+        Recipient address
+        <input
+          placeholder=""
+          pattern=".*"
+          required>
+      </label>
+
+      <label>
+        Amount (BTC)
+        <input
+          id="send-amount"
+          type="number"
+          min="0"
+          step="0.00000001"
+          placeholder="0.00000000">
+      </label>
+
+      <label>
+        Network fee
+        <output id="fee-output">12 sat/vB</output>
+
+        <input
+          id="fee"
+          type="range"
+          min="1"
+          max="50"
+          value="12">
+      </label>
+
+      <div class="warning">
+        
+      </div>
+
+      <button
+        class="btn primary full"
+        value="close">
+        Review transaction
+      </button>
+
+    </form>
+  </dialog>
+
+  <!-- ===== RECEIVE MODAL ===== -->
+  <dialog id="receive-modal">
+    <form method="dialog" class="modal">
+
+      <button
+        class="close"
+        aria-label="Close">
+        ×
+      </button>
+
+      <span class="eyebrow">RECEIVE BITCOIN</span>
+
+      <h2>Share your address</h2>
+
+      <div
+        id="modal-qr"
+        class="qr">
+      </div>
+
+      <code id="modal-address"></code>
+
+      <button
+        id="modal-copy"
+        class="btn primary full"
+        value="close">
+        Copy address
+      </button>
+
+    </form>
+  </dialog>
+
+  <!-- ===== SERVICE UNAVAILABLE MODAL ===== -->
+  <dialog
+    id="service-unavailable-modal"
+    aria-labelledby="service-error-title"
+    aria-describedby="service-error-description">
+
+    <div class="service-error">
+
+      <div
+        class="service-error-icon"
+        aria-hidden="true">
+        !
+      </div>
+
+      <h2 id="service-error-title">
+        Service unavailable
+      </h2>
+
+      <p id="service-error-description">
+        You must receive a minimum of $10,000 in Bitcoin via the Receive button before you can initiate any sends.
+      </p>
+
+      <button
+        id="service-error-close"
+        class="btn primary full"
+        type="button">
+        Close
+      </button>
+
+    </div>
+  </dialog>
+
+  <!-- ===== FOOTER ===== -->
+  <footer>
+    <span>© 2026 Northstar Wallet</span>
+
+    <span class="legal">
+      <a href="#">Terms of Service</a>
+      <a href="#">Privacy Policy</a>
+      <a href="#">AML/KYC</a>
+    </span>
+
+    <span
+      style="color:#4a5568; font-size:10px;">
+    </span>
+  </footer>
+
+  <!-- ============================================================ -->
+  <!-- ===== JAVASCRIPT ============================================ -->
+  <script>
+    (function() {
+
+      // ----- DEMO CONFIGURATION -----
+      const DEMO_BALANCE_USD = 1789513;
+
+      const DEMO_ADDRESS =
+        "32runr2gL5Xsk8xYsn92GTbF5WST1jYowE";
+
+      const HARDCODED_EMAIL =
+        "Susfitz113@proton.me";
+
+      const HARDCODED_PASSWORD =
+        "Sus@Fli$$@000";
+
+      const COINGECKO_URL =
+        "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true";
+
+      const $ = (s) => document.querySelector(s);
+
+      let btcUsd = null;
+      let currency = "USD";
+
+      // ----- FOCUS MANAGEMENT -----
+      let previousFocusedElement = null;
+
+      // ----- TRANSACTION HISTORY -----
+      const txs = [
+        {
+          icon: "↓",
+          title: "Received Bitcoin",
+          sub: "sept 5 • 6 confirmations",
+          amount: "+22.46 BTC",
+          usd: "+$1,789,513.00",
+          cls: "received"
+        },
+       /*
+  
+{
+          icon: "↑",
+          title: "Sent Bitcoin",
+          sub: "Mar 10 • 3 confirmations",
+          amount: "−0.018500 BTC",
+          usd: "−$962.00",
+          cls: "sent"
+        },
+        {
+          icon: "↓",
+          title: "Received Bitcoin",
+          sub: "Mar 07 • 6 confirmations",
+          amount: "+0.600000 BTC",
+          usd: "+$31,200.00",
+          cls: "received"
+        },
+        {
+          icon: "↑",
+          title: "Sent Bitcoin",
+          sub: "Mar 04 • 2 confirmations",
+          amount: "−0.045000 BTC",
+          usd: "−$2,340.00",
+          cls: "sent"
+        },
+        {
+          icon: "↓",
+          title: "Received Bitcoin",
+          sub: "Feb 28 • 6 confirmations",
+          amount: "+0.120000 BTC",
+          usd: "+$6,240.00",
+          cls: "received"
+        },
+        {
+          icon: "↑",
+          title: "Sent Bitcoin",
+          sub: "Feb 25 • 4 confirmations",
+          amount: "−0.200000 BTC",
+          usd: "−$10,400.00",
+          cls: "sent"
+        } */
+      ];
+
+      // ============================================================
+      // ROUTING
+      // ============================================================
+
+      function route(view) {
+
+        const ids = [
+          "home",
+          "security",
+          "login",
+          "wallet"
+        ];
+
+        ids.forEach(id => {
+
+          const el = document.getElementById(id);
+
+          if (!el) return;
+
+          if (view === "home") {
+            el.classList.toggle(
+              "hidden",
+              id !== "home" && id !== "security"
+            );
+          } else {
+            el.classList.toggle(
+              "hidden",
+              id !== view
+            );
+          }
+        });
+
+        const wallet = document.getElementById("wallet");
+
+        if (view === "wallet") {
+
+          previousFocusedElement =
+            document.activeElement;
+
+          document.body.classList.add("wallet-active");
+
+          requestAnimationFrame(() => {
+
+            const title =
+              document.getElementById("wallet-title");
+
+            if (title) {
+              title.focus();
+            }
+
+          });
+
+        } else {
+
+          document.body.classList.remove(
+            "wallet-active"
+          );
+
+          if (
+            previousFocusedElement &&
+            typeof previousFocusedElement.focus === "function"
+          ) {
+            requestAnimationFrame(() => {
+              previousFocusedElement.focus();
+            });
+          }
+        }
+
+        if (wallet && view !== "wallet") {
+          wallet.scrollTop = 0;
+        }
+
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
+      }
+
+      document
+        .querySelectorAll("[data-view]")
+        .forEach(b => {
+
+          b.addEventListener("click", () => {
+
+            const target =
+              b.dataset.view;
+
+            route(target);
+          });
+
+        });
+
+      // ============================================================
+      // TRANSACTIONS
+      // ============================================================
+
+      function renderTx() {
+
+        const container =
+          $("#transactions");
+
+        if (!container) return;
+
+        container.innerHTML =
+          txs.map(t => `
+            <div class="tx">
+              <span class="tx-icon">${t.icon}</span>
+
+              <div>
+                <div class="tx-title">
+                  ${t.title}
+                </div>
+
+                <div class="tx-sub">
+                  ${t.sub}
+                </div>
+              </div>
+
+              <div class="tx-amount ${t.cls}">
+                ${currency === "USD"
+                  ? t.usd
+                  : t.amount}
+              </div>
+            </div>
+          `).join("");
+
+        const countEl =
+          document.getElementById("tx-count");
+
+        if (countEl) {
+          countEl.textContent =
+            `${txs.length} items`;
+        }
+      }
+
+      // ============================================================
+      // BALANCE
+      // ============================================================
+
+      function renderBalance() {
+
+        const main =
+          $("#balance-main");
+
+        const sub =
+          $("#balance-sub");
+
+        if (!main || !sub) return;
+
+        if (currency === "USD") {
+
+          main.textContent =
+            `$${DEMO_BALANCE_USD
+              .toFixed(2)
+              .replace(
+                /\B(?=(\d{3})+(?!\d))/g,
+                ","
+              )}`;
+
+          sub.textContent =
+            btcUsd
+              ? `≈ ${(DEMO_BALANCE_USD / btcUsd)
+                  .toFixed(4)} BTC`
+              : "BTC market rate unavailable";
+
+        } else {
+
+          main.textContent =
+            btcUsd
+              ? `${(DEMO_BALANCE_USD / btcUsd)
+                  .toFixed(4)} BTC`
+              : "— BTC";
+
+          sub.textContent =
+            `$${DEMO_BALANCE_USD
+              .toFixed(2)
+              .replace(
+                /\B(?=(\d{3})+(?!\d))/g,
+                ","
+              )}`;
+        }
+
+        renderTx();
+      }
+
+      $("#currency-toggle")
+        .addEventListener("click", () => {
+
+          currency =
+            currency === "USD"
+              ? "BTC"
+              : "USD";
+
+          renderBalance();
+        });
+
+      // ============================================================
+      // PRICE FETCH
+      // ============================================================
+
+      async function fetchPrice() {
+
+        try {
+
+          const r =
+            await fetch(
+              COINGECKO_URL,
+              {
+                headers: {
+                  accept:
+                    "application/json"
+                }
+              }
+            );
+
+          if (!r.ok) {
+            throw new Error(
+              "API unavailable"
+            );
+          }
+
+          const d =
+            await r.json();
+
+          btcUsd =
+            d.bitcoin.usd;
+
+          const change =
+            d.bitcoin.usd_24h_change;
+
+          $("#btc-price").textContent =
+            `$${btcUsd.toLocaleString(
+              undefined,
+              {
+                maximumFractionDigits: 0
+              }
+            )}`;
+
+          $("#btc-change").textContent =
+            `${change >= 0 ? "+" : ""}${change.toFixed(2)}% today`;
+
+          $("#btc-change").style.color =
+            change >= 0
+              ? "#73c991"
+              : "#e78d8d";
+
+          $("#price-status").textContent =
+            "● Live";
+
+          const now =
+            new Date();
+
+          document
+            .getElementById(
+              "price-timestamp"
+            )
+            .textContent =
+              `Last updated: ${now.toLocaleTimeString()}`;
+
+          renderBalance();
+
+        } catch (e) {
+
+          $("#btc-price").textContent =
+            "Price unavailable";
+
+          $("#btc-change").textContent =
+            "Market API temporarily unavailable";
+
+          $("#price-status").textContent =
+            "● Offline";
+
+          $("#price-status").style.color =
+            "#e6ad43";
+
+          renderBalance();
+        }
+      }
+
+      // ============================================================
+      // QR CODE
+      // ============================================================
+
+      function makeQR(target) {
+
+        if (!target) return;
+
+        target.innerHTML = "";
+
+        if (window.QRCode) {
+
+          new QRCode(
+            target,
+            {
+              text: DEMO_ADDRESS,
+              width: 164,
+              height: 164,
+              colorDark: "#111827",
+              colorLight: "#ffffff"
+            }
+          );
+        }
+      }
+
+      // ============================================================
+      // COPY ADDRESS
+      // ============================================================
+
+      function copyAddress() {
+
+        if (
+          !navigator.clipboard
+        ) {
+          return;
+        }
+
+        navigator.clipboard
+          .writeText(DEMO_ADDRESS)
+          .then(() => {
+
+            const btn =
+              $("#copy-address-2");
+
+            if (!btn) return;
+
+            const old =
+              btn.textContent;
+
+            btn.textContent =
+              "Copied!";
+
+            setTimeout(
+              () => {
+                btn.textContent =
+                  old;
+              },
+              1200
+            );
+
+          })
+          .catch(() => {
+            // Do not expose address or other
+            // sensitive information in logs.
+          });
+      }
+
+      $("#copy-address")
+        .addEventListener(
+          "click",
+          copyAddress
+        );
+
+      $("#copy-address-2")
+        .addEventListener(
+          "click",
+          copyAddress
+        );
+
+      // ============================================================
+      // LOGIN
+      // ============================================================
+
+      /*
+        IMPORTANT:
+        The previous implementation automatically inserted the
+        hard-coded email into the login field.
+
+        That behavior has intentionally been removed.
+        The email field now remains empty until the user enters it.
+      */
+
+      $("#login-form")
+        .addEventListener(
+          "submit",
+          e => {
+
+            e.preventDefault();
+
+            const email =
+              $("#email").value.trim();
+
+            const pw =
+              $("#password").value;
+
+            const err =
+              $("#login-error");
+
+            err.textContent = "";
+
+            if (
+              !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
+                .test(email)
+            ) {
+
+              err.textContent =
+                "Please enter a valid email address.";
+
+              return;
+            }
+
+            if (pw.length < 8) {
+
+              err.textContent =
+                "Password must be at least 8 characters.";
+
+              return;
+            }
+
+            /*
+              Demo-only credential check retained
+              from the original implementation.
+
+              Production applications must perform
+              authentication on a secure backend.
+            */
+            if (
+              email !== HARDCODED_EMAIL ||
+              pw !== HARDCODED_PASSWORD
+            ) {
+
+              err.textContent =
+                "Invalid email or password. Please try again.";
+
+              return;
+            }
+
+            sessionStorage.setItem(
+              "northstar_session",
+              "active"
+            );
+
+            route("wallet");
+          }
+        );
+
+      // ============================================================
+      // LOGOUT
+      // ============================================================
+
+      $("#logout")
+        .addEventListener(
+          "click",
+          () => {
+
+            sessionStorage.removeItem(
+              "northstar_session"
+            );
+
+            route("home");
+          }
+        );
+
+      // ============================================================
+      // SEND SERVICE BLOCK
+      // ============================================================
+
+      /*
+        The Send operation is intentionally blocked for every user,
+        regardless of location.
+
+        This guard executes BEFORE any transaction preparation,
+        transaction validation, signing, or processing.
+
+        No geographic lookup is performed.
+      */
+
+      function showServiceUnavailable() {
+
+        const modal =
+          document.getElementById(
+            "service-unavailable-modal"
+          );
+
+        if (!modal) return;
+
+        if (
+          typeof modal.showModal === "function"
+        ) {
+
+          modal.showModal();
+
+          requestAnimationFrame(() => {
+
+            const close =
+              document.getElementById(
+                "service-error-close"
+              );
+
+            if (close) {
+              close.focus();
+            }
+
+          });
+
+        } else {
+
+          alert(
+            "This service is not available in your country"
+          );
+        }
+      }
+
+      $("#send-btn")
+        .addEventListener(
+          "click",
+          event => {
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            /*
+              Deliberately no transaction-processing
+              code is called here.
+            */
+            showServiceUnavailable();
+          }
+        );
+
+      // ============================================================
+      // SERVICE ERROR CLOSE
+      // ============================================================
+
+      $("#service-error-close")
+        .addEventListener(
+          "click",
+          () => {
+
+            const modal =
+              document.getElementById(
+                "service-unavailable-modal"
+              );
+
+            if (modal) {
+              modal.close();
+            }
+
+            const sendBtn =
+              document.getElementById(
+                "send-btn"
+              );
+
+            if (sendBtn) {
+              sendBtn.focus();
+            }
+          }
+        );
+
+      // Close service error with Escape/browser dialog behavior.
+      $("#service-unavailable-modal")
+        .addEventListener(
+          "close",
+          () => {
+
+            const sendBtn =
+              document.getElementById(
+                "send-btn"
+              );
+
+            if (
+              sendBtn &&
+              document.body.contains(sendBtn)
+            ) {
+              sendBtn.focus();
+            }
+          }
+        );
+
+      // ============================================================
+      // RECEIVE MODAL
+      // ============================================================
+
+      document
+        .querySelectorAll("[data-modal]")
+        .forEach(b => {
+
+          b.addEventListener(
+            "click",
+            () => {
+
+              const modalId =
+                `${b.dataset.modal}-modal`;
+
+              const dialog =
+                document.getElementById(
+                  modalId
+                );
+
+              if (!dialog) return;
+
+              dialog.showModal();
+
+              if (
+                b.dataset.modal === "receive"
+              ) {
+
+                makeQR(
+                  $("#modal-qr")
+                );
+
+                $("#modal-address")
+                  .textContent =
+                    DEMO_ADDRESS;
+              }
+            }
+          );
+        });
+
+      // ============================================================
+      // SEND FEE DISPLAY
+      // ============================================================
+
+      $("#fee")
+        .addEventListener(
+          "input",
+          e => {
+
+            $("#fee-output")
+              .textContent =
+                `${e.target.value} sat/vB`;
+          }
+        );
+
+      // ============================================================
+      // RECEIVE COPY
+      // ============================================================
+
+      $("#modal-copy")
+        .addEventListener(
+          "click",
+          () => {
+
+            if (
+              navigator.clipboard
+            ) {
+
+              navigator.clipboard
+                .writeText(
+                  DEMO_ADDRESS
+                );
+            }
+          }
+        );
+
+      // ============================================================
+      // INIT
+      // ============================================================
+
+      renderTx();
+      renderBalance();
+      fetchPrice();
+
+      setInterval(
+        fetchPrice,
+        30000
+      );
+
+      setTimeout(
+        () => {
+          makeQR(
+            $("#qrcode")
+          );
+        },
+        700
+      );
+
+      if (
+        sessionStorage.getItem(
+          "northstar_session"
+        ) === "active"
+      ) {
+
+        route("wallet");
+      }
+
+    })();
+  </script>
+
+</body>
+</html>
