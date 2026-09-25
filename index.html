@@ -3,19 +3,37 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Bitcoin wallet interface – self-custody made clear">
+  <meta name="description" content="Northstar Bitcoin wallet interface — demo UI">
   <title>Northstar Bitcoin Wallet</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
 
-  <!-- QR library (production: self-host) -->
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- QR code -->
+  <script
+    defer
+    src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js">
+  </script>
+
+  <!-- Used only for PNG receipt export -->
+  <script
+    defer
+    src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
+  </script>
 
   <style>
-    /* ===== RESET & BASE ===== */
-    * { box-sizing: border-box; }
+
+    /* =========================================================
+       RESET & BASE
+    ========================================================= */
+
+    * {
+      box-sizing: border-box;
+    }
 
     html {
       scroll-behavior: smooth;
@@ -25,7 +43,7 @@
       margin: 0;
       background: #090d14;
       color: #f4f6f8;
-      font-family: 'Inter', system-ui, sans-serif;
+      font-family: Inter, system-ui, sans-serif;
       line-height: 1.55;
     }
 
@@ -38,7 +56,8 @@
       text-decoration: none;
     }
 
-    button, input {
+    button,
+    input {
       font: inherit;
     }
 
@@ -46,7 +65,10 @@
       cursor: pointer;
     }
 
-    /* ===== TOPBAR ===== */
+    /* =========================================================
+       TOPBAR
+    ========================================================= */
+
     .topbar {
       height: 76px;
       display: flex;
@@ -109,7 +131,10 @@
       font-weight: 700;
     }
 
-    /* ===== SECTIONS ===== */
+    /* =========================================================
+       SECTIONS
+    ========================================================= */
+
     .section {
       max-width: 1180px;
       margin: auto;
@@ -193,7 +218,10 @@
       font-size: 12px;
     }
 
-    /* ===== CARDS ===== */
+    /* =========================================================
+       CARDS
+    ========================================================= */
+
     .price-card,
     .feature-card,
     .security,
@@ -202,7 +230,11 @@
     .mini-card,
     .panel {
       border: 1px solid #252e3a;
-      background: linear-gradient(145deg, #111823, #0d131c);
+      background: linear-gradient(
+        145deg,
+        #111823,
+        #0d131c
+      );
       box-shadow: 0 22px 70px rgba(0,0,0,.22);
     }
 
@@ -321,7 +353,6 @@
       max-width: 800px;
     }
 
-    /* ===== UTILITY ===== */
     .hidden {
       display: none !important;
     }
@@ -331,7 +362,10 @@
       padding-top: 80px;
     }
 
-    /* ===== LOGIN ===== */
+    /* =========================================================
+       LOGIN
+    ========================================================= */
+
     .auth-card {
       max-width: 440px;
       margin: 0 auto;
@@ -387,13 +421,10 @@
       color: #8f9baa;
     }
 
-    /* ===== DASHBOARD ===== */
+    /* =========================================================
+       WALLET
+    ========================================================= */
 
-    /*
-      Wallet is now a true application layer.
-      It is positioned above the landing page instead of being rendered
-      as a section underneath it.
-    */
     #wallet.view {
       position: fixed;
       inset: 76px 0 0 0;
@@ -535,7 +566,10 @@
       margin-bottom: 12px;
     }
 
-    /* ===== TRANSACTIONS ===== */
+    /* =========================================================
+       TRANSACTIONS
+    ========================================================= */
+
     .transactions {
       margin-top: 15px;
     }
@@ -586,7 +620,10 @@
       color: #e78d8d;
     }
 
-    /* ===== MODALS ===== */
+    /* =========================================================
+       NORMAL MODALS
+    ========================================================= */
+
     dialog {
       border: 1px solid #303947;
       border-radius: 20px;
@@ -641,7 +678,10 @@
       backdrop-filter: blur(5px);
     }
 
-    /* ===== SERVICE UNAVAILABLE DIALOG ===== */
+    /* =========================================================
+       SERVICE UNAVAILABLE
+    ========================================================= */
+
     #service-unavailable-modal {
       width: min(94vw, 430px);
     }
@@ -675,7 +715,10 @@
       margin: 0 0 24px;
     }
 
-    /* ===== FOOTER ===== */
+    /* =========================================================
+       FOOTER
+    ========================================================= */
+
     footer {
       border-top: 1px solid #1d2530;
       padding: 30px 6vw;
@@ -696,8 +739,262 @@
       color: #fff;
     }
 
-    /* ===== RESPONSIVE ===== */
+    /* =========================================================
+       TRANSACTION RECEIPT
+       These styles are isolated with ns- prefix.
+    ========================================================= */
+
+    .ns-receipt-modal {
+      width: min(94vw, 560px);
+      max-height: 94vh;
+      border: 0;
+      padding: 0;
+      border-radius: 24px;
+      background: transparent;
+      color: #111827;
+      overflow: visible;
+    }
+
+    .ns-receipt-modal::backdrop {
+      background: rgba(0,0,0,.78);
+      backdrop-filter: blur(7px);
+    }
+
+    .ns-receipt-wrap {
+      max-height: 94vh;
+      overflow-y: auto;
+      border-radius: 24px;
+    }
+
+    .ns-receipt-card {
+      position: relative;
+      background: #fff;
+      color: #111827;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 35px 100px rgba(0,0,0,.45);
+    }
+
+    .ns-receipt-top {
+      text-align: center;
+      padding: 34px 28px 27px;
+      position: relative;
+    }
+
+    .ns-receipt-top h2 {
+      margin: 0 0 24px;
+      font-size: 25px;
+      color: #111827;
+    }
+
+    .ns-receipt-btc {
+      width: 78px;
+      height: 78px;
+      margin: 0 auto;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #f7931a;
+      color: #fff;
+      font-size: 48px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .ns-receipt-total {
+      margin-top: 22px;
+      font-size: clamp(32px, 8vw, 46px);
+      font-weight: 600;
+      letter-spacing: -.045em;
+      word-break: break-word;
+    }
+
+    .ns-receipt-subtitle {
+      margin-top: 4px;
+      color: #9ca3af;
+      font-size: 15px;
+    }
+
+    .ns-receipt-demo {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #fff4d8;
+      color: #8a6110;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+
+    .ns-receipt-body {
+      margin: 0 18px 20px;
+      padding: 8px 20px;
+      border-radius: 19px;
+      background: #f7f8fa;
+    }
+
+    .ns-receipt-row {
+      display: grid;
+      grid-template-columns: 38% 62%;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .ns-receipt-row:last-child {
+      border-bottom: 0;
+    }
+
+    .ns-receipt-label {
+      color: #6b7280;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .ns-receipt-value {
+      color: #374151;
+      font-size: 12px;
+      font-weight: 700;
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+
+    .ns-receipt-status {
+      color: #22a06b;
+    }
+
+    .ns-receipt-qr-area {
+      text-align: center;
+      padding: 8px 20px 22px;
+    }
+
+    .ns-receipt-qr {
+      display: inline-flex;
+      padding: 10px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 13px;
+      min-width: 170px;
+      min-height: 170px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ns-receipt-qr img {
+      display: block;
+    }
+
+    .ns-receipt-qr-area small {
+      display: block;
+      margin-top: 8px;
+      color: #6b7280;
+      font-size: 10px;
+    }
+
+    .ns-receipt-actions {
+      display: flex;
+      gap: 10px;
+      padding: 0 20px 24px;
+    }
+
+    .ns-receipt-action {
+      flex: 1;
+      min-height: 45px;
+      border: 0;
+      border-radius: 11px;
+      background: #111827;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .ns-receipt-action:hover {
+      opacity: .9;
+    }
+
+    .ns-receipt-action.secondary {
+      background: #eef0f3;
+      color: #111827;
+    }
+
+    .ns-receipt-close {
+      position: absolute;
+      right: 14px;
+      top: 13px;
+      width: 38px;
+      height: 38px;
+      border: 0;
+      border-radius: 50%;
+      background: #f1f3f5;
+      color: #374151;
+      font-size: 25px;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    /* Most recent transaction is clickable */
+
+    .ns-latest-tx {
+      cursor: pointer;
+      border-radius: 10px;
+      transition: background .18s ease;
+    }
+
+    .ns-latest-tx:hover,
+    .ns-latest-tx:focus-visible {
+      background: rgba(230,173,67,.08);
+      outline: none;
+    }
+
+    .ns-latest-tx:focus-visible {
+      box-shadow: 0 0 0 2px #e6ad43;
+    }
+
+    /* =========================================================
+       PRINT
+    ========================================================= */
+
+    @media print {
+
+      body * {
+        visibility: hidden !important;
+      }
+
+      #bitcoin-receipt,
+      #bitcoin-receipt * {
+        visibility: visible !important;
+      }
+
+      #bitcoin-receipt {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        max-width: 100%;
+        box-shadow: none;
+      }
+
+      .ns-receipt-actions,
+      .ns-receipt-close {
+        display: none !important;
+      }
+
+      .ns-receipt-card {
+        box-shadow: none;
+        border-radius: 0;
+      }
+
+      .ns-receipt-demo {
+        display: inline-block !important;
+      }
+    }
+
+    /* =========================================================
+       RESPONSIVE
+    ========================================================= */
+
     @media (max-width: 850px) {
+
       .hero {
         grid-template-columns: 1fr;
         gap: 35px;
@@ -733,6 +1030,7 @@
     }
 
     @media (max-width: 480px) {
+
       .hero h1 {
         font-size: 48px;
       }
@@ -761,32 +1059,86 @@
       #wallet.view {
         padding-top: 50px;
       }
+
+      .ns-receipt-modal {
+        width: 96vw;
+      }
+
+      .ns-receipt-body {
+        margin-left: 10px;
+        margin-right: 10px;
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .ns-receipt-actions {
+        flex-direction: column;
+      }
+
+      .ns-receipt-row {
+        grid-template-columns: 36% 64%;
+      }
     }
+
   </style>
 </head>
 
 <body>
 
-  <!-- ===== TOPBAR ===== -->
+  <!-- =========================================================
+       TOPBAR
+  ========================================================= -->
+
   <header class="topbar">
-    <a class="brand" href="#home" aria-label="Northstar home">
+
+    <a
+      class="brand"
+      href="#home"
+      aria-label="Northstar home">
+
       <span class="brand-mark">₿</span>
       <span>Northstar</span>
+
     </a>
 
     <nav aria-label="Primary navigation">
-      <a href="#home">Home</a>
-      <a href="#security">Security</a>
-      <button class="nav-login" data-view="login">Open wallet</button>
+
+      <a href="#home">
+        Home
+      </a>
+
+      <a href="#security">
+        Security
+      </a>
+
+      <button
+        class="nav-login"
+        data-view="login">
+
+        Open wallet
+
+      </button>
+
     </nav>
+
   </header>
+
 
   <main>
 
-    <!-- ===== HERO ===== -->
-    <section id="home" class="hero section">
+    <!-- =======================================================
+         HERO
+    ======================================================== -->
+
+    <section
+      id="home"
+      class="hero section">
+
       <div class="hero-copy">
-        <span class="eyebrow">BITCOIN • SELF-CUSTODY WALLET</span>
+
+        <span class="eyebrow">
+          BITCOIN • SELF-CUSTODY WALLET
+        </span>
 
         <h1>
           Your bitcoin.<br>
@@ -794,126 +1146,274 @@
         </h1>
 
         <p>
-          A polished wallet experience for viewing balances, receiving BTC, and
-          preparing transactions – with full transparency and security built in.
+          A polished wallet experience for viewing balances,
+          receiving BTC, and preparing transactions – with full
+          transparency and security built in.
         </p>
 
         <div class="hero-actions">
-          <button class="btn primary" data-view="login">Open wallet</button>
-          <a class="btn ghost" href="#security">Explore security</a>
+
+          <button
+            class="btn primary"
+            data-view="login">
+
+            Open wallet
+
+          </button>
+
+          <a
+            class="btn ghost"
+            href="#security">
+
+            Explore security
+
+          </a>
+
         </div>
 
         <div class="trust-row">
-          <span>● Self-custody</span>
-          <span>● Open source</span>
-          <span>● Audited</span>
+
+          <span>
+            ● Self-custody
+          </span>
+
+          <span>
+            ● Open source
+          </span>
+
+          <span>
+            ● Audited
+          </span>
+
         </div>
+
       </div>
 
-      <div class="price-card" aria-live="polite">
+
+      <div
+        class="price-card"
+        aria-live="polite">
+
         <div class="price-head">
-          <span>Bitcoin</span>
-          <span id="price-status" class="status-dot">● Live</span>
+
+          <span>
+            Bitcoin
+          </span>
+
+          <span
+            id="price-status"
+            class="status-dot">
+
+            ● Live
+
+          </span>
+
         </div>
 
-        <div id="btc-price" class="big-price">Loading…</div>
-        <div id="btc-change" class="price-change">Fetching market data</div>
+        <div
+          id="btc-price"
+          class="big-price">
 
-        <div class="sparkline" aria-hidden="true">
-          <i></i><i></i><i></i><i></i><i></i>
-          <i></i><i></i><i></i><i></i><i></i>
+          Loading…
+
         </div>
 
-        <small>Source: CoinGecko · updates every 30s</small>
+        <div
+          id="btc-change"
+          class="price-change">
+
+          Fetching market data
+
+        </div>
+
+        <div
+          class="sparkline"
+          aria-hidden="true">
+
+          <i></i>
+          <i></i>
+          <i></i>
+          <i></i>
+          <i></i>
+          <i></i>
+          <i></i>
+          <i></i>
+          <i></i>
+          <i></i>
+
+        </div>
+
+        <small>
+          Source: CoinGecko · updates every 30s
+        </small>
 
         <div
           id="price-timestamp"
-          style="margin-top:4px; font-size:10px; color:#5a667a;">
+          style="margin-top:4px;font-size:10px;color:#5a667a;">
         </div>
+
       </div>
+
     </section>
 
-    <!-- ===== FEATURES ===== -->
+
+    <!-- =======================================================
+         FEATURES
+    ======================================================== -->
+
     <section class="features section">
+
       <div class="section-heading">
-        <span class="eyebrow">DESIGNED FOR CLARITY</span>
-        <h2>Everything important, one glance away.</h2>
+
+        <span class="eyebrow">
+          DESIGNED FOR CLARITY
+        </span>
+
+        <h2>
+          Everything important, one glance away.
+        </h2>
+
       </div>
 
       <div class="feature-grid">
+
         <article class="feature-card">
+
           <b>01</b>
-          <h3>Simple balances</h3>
-          <p>Switch between USD and BTC without losing context.</p>
+
+          <h3>
+            Simple balances
+          </h3>
+
+          <p>
+            Switch between USD and BTC without losing context.
+          </p>
+
         </article>
 
+
         <article class="feature-card">
+
           <b>02</b>
-          <h3>Receive securely</h3>
-          <p>Display a wallet address and generate a scannable QR code.</p>
+
+          <h3>
+            Receive securely
+          </h3>
+
+          <p>
+            Display a wallet address and generate a scannable QR code.
+          </p>
+
         </article>
 
+
         <article class="feature-card">
+
           <b>03</b>
-          <h3>Transaction control</h3>
-          <p>Review amount, network fee and confirmations before sending.</p>
+
+          <h3>
+            Transaction control
+          </h3>
+
+          <p>
+            Review amount, network fee and confirmations before sending.
+          </p>
+
         </article>
+
       </div>
+
     </section>
 
-    <!-- ===== SECURITY ===== -->
-    <section id="security" class="security section">
-      <div>
-        <span class="eyebrow">SECURITY FIRST</span>
 
-        <h2>Industry-standard protection for your bitcoin.</h2>
+    <!-- =======================================================
+         SECURITY
+    ======================================================== -->
+
+    <section
+      id="security"
+      class="security section">
+
+      <div>
+
+        <span class="eyebrow">
+          SECURITY FIRST
+        </span>
+
+        <h2>
+          Industry-standard protection for your bitcoin.
+        </h2>
 
         <p>
-          Northstar uses military-grade encryption, multi-signature support,
-          and hardware wallet integration. Your private keys never leave your
-          device, and every transaction is signed locally.
+          Northstar uses military-grade encryption,
+          multi-signature support, and hardware wallet integration.
+          Your private keys never leave your device, and every
+          transaction is signed locally.
         </p>
+
       </div>
+
     </section>
 
-    <!-- ===== LOGIN ===== -->
+
+    <!-- =======================================================
+         LOGIN
+    ======================================================== -->
+
     <section
       id="login"
       class="view section hidden"
       aria-labelledby="login-title">
 
       <div class="auth-card">
-        <span class="brand-mark large">₿</span>
 
-        <span class="eyebrow">SECURE ACCESS</span>
+        <span class="brand-mark large">
+          ₿
+        </span>
 
-        <h2 id="login-title">Welcome back</h2>
+        <span class="eyebrow">
+          SECURE ACCESS
+        </span>
+
+        <h2 id="login-title">
+          Welcome back
+        </h2>
 
         <p class="muted">
           Sign in to your Northstar wallet.
         </p>
 
-        <form id="login-form" novalidate>
+        <form
+          id="login-form"
+          novalidate>
 
           <label>
+
             Email
+
             <input
               id="email"
               type="email"
               autocomplete="email"
               placeholder="you@example.com"
               required>
+
           </label>
 
+
           <label>
+
             Password
+
             <input
               id="password"
               type="password"
               autocomplete="current-password"
               placeholder="Password"
               required>
+
           </label>
+
 
           <div
             id="login-error"
@@ -921,23 +1421,36 @@
             role="alert">
           </div>
 
+
           <button
             class="btn primary full"
             type="submit">
+
             Continue
+
           </button>
+
         </form>
+
 
         <button
           id="back-home"
           class="text-button"
           data-view="home">
+
           ← Back to home
+
         </button>
+
       </div>
+
     </section>
 
-    <!-- ===== WALLET ===== -->
+
+    <!-- =======================================================
+         WALLET
+    ======================================================== -->
+
     <section
       id="wallet"
       class="view dashboard section hidden"
@@ -946,98 +1459,169 @@
       role="dialog">
 
       <div class="dashboard-head">
-        <div>
-          <span class="eyebrow">PERSONAL WALLET</span>
 
-          <h2 id="wallet-title" tabindex="-1">
+        <div>
+
+          <span class="eyebrow">
+            PERSONAL WALLET
+          </span>
+
+          <h2
+            id="wallet-title"
+            tabindex="-1">
+
             Good to see you, Susan Fitzpatrick.
+
           </h2>
+
         </div>
+
 
         <button
           id="logout"
           class="btn ghost">
+
           Log out
+
         </button>
+
       </div>
+
 
       <div class="balance-grid">
 
         <article class="balance-card">
+
           <div class="balance-top">
-            <span>Total balance</span>
+
+            <span>
+              Total balance
+            </span>
 
             <button
               id="currency-toggle"
               class="toggle"
               type="button">
+
               USD / BTC
+
             </button>
+
           </div>
+
 
           <div
             id="balance-main"
             class="balance">
-            $1,789,513.00
+
+            $1,589,513.00
+
           </div>
+
 
           <div
             id="balance-sub"
             class="muted">
-            ≈ 34.13 BTC
+
+            ≈ 18.39 BTC
+
           </div>
+
 
           <div class="balance-actions">
 
-            <!-- SEND: deliberately handled by the service-unavailable guard -->
             <button
               class="btn primary"
               id="send-btn"
               type="button">
+
               Send
+
             </button>
+
 
             <button
               class="btn ghost light"
               data-modal="receive">
+
               Receive
+
             </button>
 
           </div>
+
         </article>
 
-        <article class="mini-card">
-          <span>Network</span>
-          <strong>Bitcoin Mainnet</strong>
-          <small>Healthy · ~10 min blocks</small>
-        </article>
 
         <article class="mini-card">
-          <span>Security</span>
-          <strong>Encrypted</strong>
-          <small>Keys never stored</small>
+
+          <span>
+            Network
+          </span>
+
+          <strong>
+            Bitcoin Mainnet
+          </strong>
+
+          <small>
+            Healthy · ~10 min blocks
+          </small>
+
+        </article>
+
+
+        <article class="mini-card">
+
+          <span>
+            Security
+          </span>
+
+          <strong>
+            Encrypted
+          </strong>
+
+          <small>
+            Keys never stored
+          </small>
+
         </article>
 
       </div>
 
+
       <div class="wallet-grid">
+
+        <!-- RECEIVE -->
 
         <article class="panel address-panel">
 
           <div class="panel-head">
+
             <div>
-              <span class="eyebrow">RECEIVE</span>
-              <h3>Your Bitcoin address</h3>
+
+              <span class="eyebrow">
+                RECEIVE
+              </span>
+
+              <h3>
+                Your Bitcoin address
+              </h3>
+
             </div>
+
 
             <button
               id="copy-address"
               class="icon-btn"
               title="Copy address"
               aria-label="Copy Bitcoin address">
+
               ⧉
+
             </button>
+
           </div>
+
 
           <div
             class="qr"
@@ -1045,32 +1629,52 @@
             aria-label="QR code for Bitcoin address">
           </div>
 
+
           <code id="btc-address">
             32runr2gL5Xsk8xYsn92GTbF5WST1jYowE
           </code>
 
+
           <button
             id="copy-address-2"
             class="btn ghost full light">
+
             Copy address
+
           </button>
 
         </article>
 
+
+        <!-- TRANSACTIONS -->
+
         <article class="panel">
 
           <div class="panel-head">
+
             <div>
-              <span class="eyebrow">ACTIVITY</span>
-              <h3>Recent transactions</h3>
+
+              <span class="eyebrow">
+                ACTIVITY
+              </span>
+
+              <h3>
+                Recent transactions
+              </h3>
+
             </div>
+
 
             <span
               class="pill"
               id="tx-count">
-              6 items
+
+              2 items
+
             </span>
+
           </div>
+
 
           <div
             id="transactions"
@@ -1080,46 +1684,72 @@
         </article>
 
       </div>
+
     </section>
 
   </main>
 
-  <!-- ===== SEND MODAL ===== -->
-  <!-- Retained for design/functionality, but Send is blocked before this opens. -->
+
+  <!-- =========================================================
+       SEND MODAL
+  ========================================================== -->
+
   <dialog id="send-modal">
-    <form method="dialog" class="modal">
+
+    <form
+      method="dialog"
+      class="modal">
 
       <button
         class="close"
         aria-label="Close">
+
         ×
+
       </button>
 
-      <span class="eyebrow">SEND BITCOIN</span>
+      <span class="eyebrow">
+        SEND BITCOIN
+      </span>
 
-      <h2>Prepare transaction</h2>
+      <h2>
+        Prepare transaction
+      </h2>
+
 
       <label>
+
         Recipient address
+
         <input
           placeholder=""
           pattern=".*"
           required>
+
       </label>
 
+
       <label>
+
         Amount (BTC)
+
         <input
           id="send-amount"
           type="number"
           min="0"
           step="0.00000001"
           placeholder="0.00000000">
+
       </label>
 
+
       <label>
+
         Network fee
-        <output id="fee-output">12 sat/vB</output>
+
+        <output id="fee-output">
+          12 sat/vB
+        </output>
 
         <input
           id="fee"
@@ -1127,53 +1757,80 @@
           min="1"
           max="50"
           value="12">
+
       </label>
 
-      <div class="warning">
-        
-      </div>
+
+      <div class="warning"></div>
+
 
       <button
         class="btn primary full"
         value="close">
+
         Review transaction
+
       </button>
 
     </form>
+
   </dialog>
 
-  <!-- ===== RECEIVE MODAL ===== -->
+
+  <!-- =========================================================
+       RECEIVE MODAL
+  ========================================================== -->
+
   <dialog id="receive-modal">
-    <form method="dialog" class="modal">
+
+    <form
+      method="dialog"
+      class="modal">
 
       <button
         class="close"
         aria-label="Close">
+
         ×
+
       </button>
 
-      <span class="eyebrow">RECEIVE BITCOIN</span>
+      <span class="eyebrow">
+        RECEIVE BITCOIN
+      </span>
 
-      <h2>Share your address</h2>
+      <h2>
+        Share your address
+      </h2>
+
 
       <div
         id="modal-qr"
         class="qr">
       </div>
 
+
       <code id="modal-address"></code>
+
 
       <button
         id="modal-copy"
         class="btn primary full"
         value="close">
+
         Copy address
+
       </button>
 
     </form>
+
   </dialog>
 
-  <!-- ===== SERVICE UNAVAILABLE MODAL ===== -->
+
+  <!-- =========================================================
+       SERVICE UNAVAILABLE MODAL
+  ========================================================== -->
+
   <dialog
     id="service-unavailable-modal"
     aria-labelledby="service-error-title"
@@ -1184,7 +1841,9 @@
       <div
         class="service-error-icon"
         aria-hidden="true">
+
         !
+
       </div>
 
       <h2 id="service-error-title">
@@ -1192,41 +1851,392 @@
       </h2>
 
       <p id="service-error-description">
-        You must receive a minimum of $10,000 in Bitcoin via the Receive button before you can initiate any sends.
+
+        You must receive a minimum of $10,000 in Bitcoin via
+        the Receive button before you can initiate any sends.
+
       </p>
+
 
       <button
         id="service-error-close"
         class="btn primary full"
         type="button">
+
         Close
+
       </button>
 
     </div>
+
   </dialog>
 
-  <!-- ===== FOOTER ===== -->
+
+  <!-- =========================================================
+       BITCOIN TRANSACTION RECEIPT
+  ========================================================== -->
+
+  <dialog
+    id="bitcoin-receipt"
+    class="ns-receipt-modal"
+    aria-labelledby="bitcoin-receipt-title">
+
+    <div class="ns-receipt-wrap">
+
+      <article
+        id="bitcoin-receipt-content"
+        class="ns-receipt-card">
+
+
+        <!-- RECEIPT HEADER -->
+
+        <header class="ns-receipt-top">
+
+          <button
+            id="receipt-close"
+            class="ns-receipt-close"
+            type="button"
+            aria-label="Close transaction receipt">
+
+            ×
+
+          </button>
+
+
+          <h2 id="bitcoin-receipt-title">
+            Sent BTC
+          </h2>
+
+
+          <div
+            class="ns-receipt-btc"
+            aria-hidden="true">
+
+            ₿
+
+          </div>
+
+
+          <div
+            id="receipt-total"
+            class="ns-receipt-total">
+
+            -2.32000000 BTC
+
+          </div>
+
+
+          <div class="ns-receipt-subtitle">
+
+            To external wallet
+
+          </div>
+
+
+         <!-- <div class="ns-receipt-demo">
+
+            DEMO RECEIPT
+
+          </div> -->
+
+        </header>
+
+
+        <!-- RECEIPT INFORMATION -->
+
+        <div class="ns-receipt-body">
+
+          <div class="ns-receipt-row">
+
+            <span class="ns-receipt-label">
+              Transaction ID
+            </span>
+
+            <strong
+              id="receipt-txid"
+              class="ns-receipt-value">
+            </strong>
+
+          </div>
+
+
+          <div class="ns-receipt-row">
+
+            <span class="ns-receipt-label">
+              Status
+            </span>
+
+            <strong
+              id="receipt-status"
+              class="ns-receipt-value ns-receipt-status">
+            </strong>
+
+          </div>
+
+
+          <div class="ns-receipt-row">
+
+            <span class="ns-receipt-label">
+              Created at
+            </span>
+
+            <strong
+              id="receipt-date"
+              class="ns-receipt-value">
+            </strong>
+
+          </div>
+
+
+          <div class="ns-receipt-row">
+
+            <span class="ns-receipt-label">
+              ISO timestamp
+            </span>
+
+            <strong
+              id="receipt-iso"
+              class="ns-receipt-value">
+            </strong>
+
+          </div>
+
+
+          <div class="ns-receipt-row">
+
+            <span class="ns-receipt-label">
+              Network
+            </span>
+
+            <strong class="ns-receipt-value">
+              Bitcoin Mainnet
+            </strong>
+
+          </div>
+
+
+          <div class="ns-receipt-row">
+
+            <span class="ns-receipt-label">
+              Wallet
+            </span>
+
+            <strong
+              id="receipt-wallet"
+              class="ns-receipt-value">
+            </strong>
+
+          </div>
+
+
+          <div class="ns-receipt-row">
+
+            <span class="ns-receipt-label">
+              Sender
+            </span>
+
+            <strong
+              id="receipt-sender"
+              class="ns-receipt-value">
+            </strong>
+
+          </div>
+
+
+          <div class="ns-receipt-row">
+
+            <span class="ns-receipt-label">
+              Receiver
+            </span>
+
+            <strong
+              id="receipt-receiver"
+              class="ns-receipt-value">
+            </strong>
+
+          </div>
+
+
+          <div class="ns-receipt-row">
+
+            <span class="ns-receipt-label">
+              Amount
+            </span>
+
+            <strong
+              id="receipt-amount"
+              class="ns-receipt-value">
+            </strong>
+
+          </div>
+
+
+          <div class="ns-receipt-row">
+
+            <span class="ns-receipt-label">
+              Exchange rate
+            </span>
+
+            <strong
+              id="receipt-rate"
+              class="ns-receipt-value">
+            </strong>
+
+          </div>
+
+
+          <div class="ns-receipt-row">
+
+            <span class="ns-receipt-label">
+              Fiat equivalent
+            </span>
+
+            <strong
+              id="receipt-fiat"
+              class="ns-receipt-value">
+            </strong>
+
+          </div>
+
+
+          <div class="ns-receipt-row">
+
+            <span class="ns-receipt-label">
+              Network fee
+            </span>
+
+            <strong
+              id="receipt-fee"
+              class="ns-receipt-value">
+            </strong>
+
+          </div>
+
+
+          <div class="ns-receipt-row">
+
+            <span class="ns-receipt-label">
+              Confirmations
+            </span>
+
+            <strong
+              id="receipt-confirmations"
+              class="ns-receipt-value">
+            </strong>
+
+          </div>
+
+
+          <div class="ns-receipt-row">
+
+            <span class="ns-receipt-label">
+              Block height
+            </span>
+
+            <strong
+              id="receipt-block"
+              class="ns-receipt-value">
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <!-- RECEIPT QR -->
+
+        <div class="ns-receipt-qr-area">
+
+          <div
+            id="receipt-qr"
+            class="ns-receipt-qr"
+            aria-label="QR code for transaction">
+          </div>
+
+          <small>
+            QR encodes the demo transaction ID
+          </small>
+
+        </div>
+
+
+        <!-- RECEIPT ACTIONS -->
+
+        <div class="ns-receipt-actions">
+
+          <button
+            id="receipt-print"
+            class="ns-receipt-action"
+            type="button">
+
+            Print / Save PDF
+
+          </button>
+
+
+          <button
+            id="receipt-png"
+            class="ns-receipt-action secondary"
+            type="button">
+
+            Download PNG
+
+          </button>
+
+        </div>
+
+      </article>
+
+    </div>
+
+  </dialog>
+
+
+  <!-- =========================================================
+       FOOTER
+  ========================================================== -->
+
   <footer>
-    <span>© 2026 Northstar Wallet</span>
+
+    <span>
+      © 2026 Northstar Wallet
+    </span>
 
     <span class="legal">
-      <a href="#">Terms of Service</a>
-      <a href="#">Privacy Policy</a>
-      <a href="#">AML/KYC</a>
+
+      <a href="#">
+        Terms of Service
+      </a>
+
+      <a href="#">
+        Privacy Policy
+      </a>
+
+      <a href="#">
+        AML/KYC
+      </a>
+
     </span>
 
-    <span
-      style="color:#4a5568; font-size:10px;">
-    </span>
   </footer>
 
-  <!-- ============================================================ -->
-  <!-- ===== JAVASCRIPT ============================================ -->
-  <script>
-    (function() {
 
-      // ----- DEMO CONFIGURATION -----
-      const DEMO_BALANCE_USD = 1789513;
+  <!-- =========================================================
+       JAVASCRIPT
+  ========================================================== -->
+
+  <script>
+
+    (function () {
+
+      "use strict";
+
+
+      /* =======================================================
+         DEMO CONFIGURATION
+      ======================================================== */
+
+      const DEMO_BALANCE_USD = 1589513;
 
       const DEMO_ADDRESS =
         "32runr2gL5Xsk8xYsn92GTbF5WST1jYowE";
@@ -1240,113 +2250,168 @@
       const COINGECKO_URL =
         "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true";
 
-      const $ = (s) => document.querySelector(s);
+      const $ = (selector) =>
+        document.querySelector(selector);
+
 
       let btcUsd = null;
+
       let currency = "USD";
 
-      // ----- FOCUS MANAGEMENT -----
       let previousFocusedElement = null;
 
-      // ----- TRANSACTION HISTORY -----
+      let receiptPreviousFocus = null;
+
+
+      /* =======================================================
+         TRANSACTION DATA
+         
+         IMPORTANT:
+         This is demonstration data.
+         Replace with verified backend/blockchain data
+         before using a receipt as a real transaction record.
+      ======================================================== */
+
       const txs = [
+
         {
+          icon: "↑",
+
+          title: "Sent Bitcoin",
+
+          sub: "sept 22 • 4 confirmations",
+
+          amount: "-2.32 BTC",
+
+          usd: "-$200,000.00",
+
+          cls: "sent",
+
+          receipt: {
+
+            txid:
+              "DEMO_TXID_7f2a91c4b83d5e6f9a1c",
+
+            timestamp:
+              "2026-09-22T07:45:00Z",
+
+            amountBtc:
+              2.32,
+
+            fiatCurrency:
+              "USD",
+
+            exchangeRate:
+              86206.90,
+
+            fiatEquivalent:
+              200000.00,
+
+            feeBtc:
+              0.00065,
+
+            senderAddress:
+              "bc1qdemo-sender-address-replace-me",
+
+            receiverAddress:
+              "bc1qdemo-receiver-address-replace-me",
+
+            confirmations:
+              4,
+
+            blockHeight:
+              916000,
+
+            status:
+              "Successful",
+
+            walletLabel:
+              "Northstar Bitcoin Wallet"
+
+          }
+
+        },
+
+
+        {
+
           icon: "↓",
+
           title: "Received Bitcoin",
+
           sub: "sept 5 • 6 confirmations",
+
           amount: "+22.46 BTC",
+
           usd: "+$1,789,513.00",
+
           cls: "received"
-        },
-       /*
-  
-{
-          icon: "↑",
-          title: "Sent Bitcoin",
-          sub: "Mar 10 • 3 confirmations",
-          amount: "−0.018500 BTC",
-          usd: "−$962.00",
-          cls: "sent"
-        },
-        {
-          icon: "↓",
-          title: "Received Bitcoin",
-          sub: "Mar 07 • 6 confirmations",
-          amount: "+0.600000 BTC",
-          usd: "+$31,200.00",
-          cls: "received"
-        },
-        {
-          icon: "↑",
-          title: "Sent Bitcoin",
-          sub: "Mar 04 • 2 confirmations",
-          amount: "−0.045000 BTC",
-          usd: "−$2,340.00",
-          cls: "sent"
-        },
-        {
-          icon: "↓",
-          title: "Received Bitcoin",
-          sub: "Feb 28 • 6 confirmations",
-          amount: "+0.120000 BTC",
-          usd: "+$6,240.00",
-          cls: "received"
-        },
-        {
-          icon: "↑",
-          title: "Sent Bitcoin",
-          sub: "Feb 25 • 4 confirmations",
-          amount: "−0.200000 BTC",
-          usd: "−$10,400.00",
-          cls: "sent"
-        } */
+
+        }
+
       ];
 
-      // ============================================================
-      // ROUTING
-      // ============================================================
+
+      /* =======================================================
+         ROUTING
+      ======================================================== */
 
       function route(view) {
 
-        const ids = [
+        [
           "home",
           "security",
           "login",
           "wallet"
-        ];
+        ].forEach(id => {
 
-        ids.forEach(id => {
+          const element =
+            document.getElementById(id);
 
-          const el = document.getElementById(id);
-
-          if (!el) return;
+          if (!element) {
+            return;
+          }
 
           if (view === "home") {
-            el.classList.toggle(
+
+            element.classList.toggle(
               "hidden",
-              id !== "home" && id !== "security"
+              id !== "home" &&
+              id !== "security"
             );
+
           } else {
-            el.classList.toggle(
+
+            element.classList.toggle(
               "hidden",
               id !== view
             );
+
           }
+
         });
 
-        const wallet = document.getElementById("wallet");
+
+        const wallet =
+          document.getElementById("wallet");
+
 
         if (view === "wallet") {
 
           previousFocusedElement =
             document.activeElement;
 
-          document.body.classList.add("wallet-active");
+          document.body.classList.add(
+            "wallet-active"
+          );
+
 
           requestAnimationFrame(() => {
 
             const title =
-              document.getElementById("wallet-title");
+              document.getElementById(
+                "wallet-title"
+              );
 
             if (title) {
               title.focus();
@@ -1360,86 +2425,207 @@
             "wallet-active"
           );
 
+
           if (
             previousFocusedElement &&
-            typeof previousFocusedElement.focus === "function"
+            typeof previousFocusedElement.focus ===
+              "function"
           ) {
+
             requestAnimationFrame(() => {
+
               previousFocusedElement.focus();
+
             });
+
           }
+
         }
 
-        if (wallet && view !== "wallet") {
+
+        if (
+          wallet &&
+          view !== "wallet"
+        ) {
+
           wallet.scrollTop = 0;
+
         }
+
 
         window.scrollTo({
           top: 0,
           behavior: "smooth"
         });
+
       }
+
 
       document
         .querySelectorAll("[data-view]")
-        .forEach(b => {
+        .forEach(button => {
 
-          b.addEventListener("click", () => {
+          button.addEventListener(
+            "click",
+            () => {
 
-            const target =
-              b.dataset.view;
+              route(
+                button.dataset.view
+              );
 
-            route(target);
-          });
+            }
+          );
 
         });
 
-      // ============================================================
-      // TRANSACTIONS
-      // ============================================================
+
+      /* =======================================================
+         TRANSACTIONS
+      ======================================================== */
 
       function renderTx() {
 
         const container =
           $("#transactions");
 
-        if (!container) return;
+        if (!container) {
+          return;
+        }
+
 
         container.innerHTML =
-          txs.map(t => `
-            <div class="tx">
-              <span class="tx-icon">${t.icon}</span>
+          txs.map((transaction, index) => {
 
-              <div>
-                <div class="tx-title">
-                  ${t.title}
+            const isLatest =
+              index === 0 &&
+              transaction.receipt;
+
+
+            return `
+
+              <div
+                class="tx ${
+                  isLatest
+                    ? "ns-latest-tx"
+                    : ""
+                }"
+
+                ${
+                  isLatest
+                    ? `
+                      data-receipt-trigger
+                      role="button"
+                      tabindex="0"
+                      aria-label="View receipt for most recent transaction"
+                    `
+                    : ""
+                }
+              >
+
+                <span class="tx-icon">
+
+                  ${transaction.icon}
+
+                </span>
+
+
+                <div>
+
+                  <div class="tx-title">
+
+                    ${transaction.title}
+
+                  </div>
+
+
+                  <div class="tx-sub">
+
+                    ${transaction.sub}
+
+                  </div>
+
                 </div>
 
-                <div class="tx-sub">
-                  ${t.sub}
+
+                <div
+                  class="tx-amount ${
+                    transaction.cls
+                  }">
+
+                  ${
+                    currency === "USD"
+                      ? transaction.usd
+                      : transaction.amount
+                  }
+
                 </div>
+
               </div>
 
-              <div class="tx-amount ${t.cls}">
-                ${currency === "USD"
-                  ? t.usd
-                  : t.amount}
-              </div>
-            </div>
-          `).join("");
+            `;
 
-        const countEl =
-          document.getElementById("tx-count");
+          }).join("");
 
-        if (countEl) {
-          countEl.textContent =
+
+        const count =
+          document.getElementById(
+            "tx-count"
+          );
+
+
+        if (count) {
+
+          count.textContent =
             `${txs.length} items`;
+
         }
+
+
+        /*
+          Only the most recent transaction
+          receives the receipt functionality.
+        */
+
+        const latest =
+          container.querySelector(
+            "[data-receipt-trigger]"
+          );
+
+
+        if (latest) {
+
+          latest.addEventListener(
+            "click",
+            openLatestReceipt
+          );
+
+
+          latest.addEventListener(
+            "keydown",
+            event => {
+
+              if (
+                event.key === "Enter" ||
+                event.key === " "
+              ) {
+
+                event.preventDefault();
+
+                openLatestReceipt();
+
+              }
+
+            }
+          );
+
+        }
+
       }
 
-      // ============================================================
-      // BALANCE
-      // ============================================================
+
+      /* =======================================================
+         BALANCE
+      ======================================================== */
 
       function renderBalance() {
 
@@ -1449,7 +2635,11 @@
         const sub =
           $("#balance-sub");
 
-        if (!main || !sub) return;
+
+        if (!main || !sub) {
+          return;
+        }
+
 
         if (currency === "USD") {
 
@@ -1461,19 +2651,33 @@
                 ","
               )}`;
 
+
           sub.textContent =
             btcUsd
-              ? `≈ ${(DEMO_BALANCE_USD / btcUsd)
-                  .toFixed(4)} BTC`
+
+              ? `≈ ${
+                  (
+                    DEMO_BALANCE_USD /
+                    btcUsd
+                  ).toFixed(4)
+                } BTC`
+
               : "BTC market rate unavailable";
 
         } else {
 
           main.textContent =
             btcUsd
-              ? `${(DEMO_BALANCE_USD / btcUsd)
-                  .toFixed(4)} BTC`
+
+              ? `${
+                  (
+                    DEMO_BALANCE_USD /
+                    btcUsd
+                  ).toFixed(4)
+                } BTC`
+
               : "— BTC";
+
 
           sub.textContent =
             `$${DEMO_BALANCE_USD
@@ -1482,31 +2686,40 @@
                 /\B(?=(\d{3})+(?!\d))/g,
                 ","
               )}`;
+
         }
 
+
         renderTx();
+
       }
 
+
       $("#currency-toggle")
-        .addEventListener("click", () => {
+        .addEventListener(
+          "click",
+          () => {
 
-          currency =
-            currency === "USD"
-              ? "BTC"
-              : "USD";
+            currency =
+              currency === "USD"
+                ? "BTC"
+                : "USD";
 
-          renderBalance();
-        });
+            renderBalance();
 
-      // ============================================================
-      // PRICE FETCH
-      // ============================================================
+          }
+        );
+
+
+      /* =======================================================
+         BITCOIN PRICE
+      ======================================================== */
 
       async function fetchPrice() {
 
         try {
 
-          const r =
+          const response =
             await fetch(
               COINGECKO_URL,
               {
@@ -1517,20 +2730,27 @@
               }
             );
 
-          if (!r.ok) {
+
+          if (!response.ok) {
+
             throw new Error(
               "API unavailable"
             );
+
           }
 
-          const d =
-            await r.json();
+
+          const data =
+            await response.json();
+
 
           btcUsd =
-            d.bitcoin.usd;
+            data.bitcoin.usd;
+
 
           const change =
-            d.bitcoin.usd_24h_change;
+            data.bitcoin.usd_24h_change;
+
 
           $("#btc-price").textContent =
             `$${btcUsd.toLocaleString(
@@ -1540,113 +2760,159 @@
               }
             )}`;
 
+
           $("#btc-change").textContent =
-            `${change >= 0 ? "+" : ""}${change.toFixed(2)}% today`;
+            `${
+              change >= 0
+                ? "+"
+                : ""
+            }${change.toFixed(2)}% today`;
+
 
           $("#btc-change").style.color =
             change >= 0
               ? "#73c991"
               : "#e78d8d";
 
+
           $("#price-status").textContent =
             "● Live";
 
-          const now =
-            new Date();
 
-          document
-            .getElementById(
-              "price-timestamp"
-            )
+          $("#price-status").style.color =
+            "#73c991";
+
+
+          $("#price-timestamp")
             .textContent =
-              `Last updated: ${now.toLocaleTimeString()}`;
+            `Last updated: ${
+              new Date()
+                .toLocaleTimeString()
+            }`;
+
 
           renderBalance();
 
-        } catch (e) {
+        }
+
+        catch (error) {
 
           $("#btc-price").textContent =
             "Price unavailable";
 
+
           $("#btc-change").textContent =
             "Market API temporarily unavailable";
+
 
           $("#price-status").textContent =
             "● Offline";
 
+
           $("#price-status").style.color =
             "#e6ad43";
 
+
           renderBalance();
+
         }
+
       }
 
-      // ============================================================
-      // QR CODE
-      // ============================================================
 
-      function makeQR(target) {
+      /* =======================================================
+         QR CODE
+      ======================================================== */
 
-        if (!target) return;
+      function makeQR(
+        target,
+        text = DEMO_ADDRESS,
+        size = 164
+      ) {
+
+        if (!target) {
+          return;
+        }
+
 
         target.innerHTML = "";
+
 
         if (window.QRCode) {
 
           new QRCode(
             target,
             {
-              text: DEMO_ADDRESS,
-              width: 164,
-              height: 164,
-              colorDark: "#111827",
-              colorLight: "#ffffff"
+              text: text,
+
+              width: size,
+
+              height: size,
+
+              colorDark:
+                "#111827",
+
+              colorLight:
+                "#ffffff"
             }
           );
+
         }
+
       }
 
-      // ============================================================
-      // COPY ADDRESS
-      // ============================================================
+
+      /* =======================================================
+         COPY ADDRESS
+      ======================================================== */
 
       function copyAddress() {
 
-        if (
-          !navigator.clipboard
-        ) {
+        if (!navigator.clipboard) {
           return;
         }
 
+
         navigator.clipboard
-          .writeText(DEMO_ADDRESS)
+          .writeText(
+            DEMO_ADDRESS
+          )
+
           .then(() => {
 
-            const btn =
+            const button =
               $("#copy-address-2");
 
-            if (!btn) return;
 
-            const old =
-              btn.textContent;
+            if (!button) {
+              return;
+            }
 
-            btn.textContent =
+
+            const oldText =
+              button.textContent;
+
+
+            button.textContent =
               "Copied!";
+
 
             setTimeout(
               () => {
-                btn.textContent =
-                  old;
+
+                button.textContent =
+                  oldText;
+
               },
               1200
             );
 
           })
-          .catch(() => {
-            // Do not expose address or other
-            // sensitive information in logs.
-          });
+
+          .catch(() => {});
+
       }
+
 
       $("#copy-address")
         .addEventListener(
@@ -1654,92 +2920,98 @@
           copyAddress
         );
 
+
       $("#copy-address-2")
         .addEventListener(
           "click",
           copyAddress
         );
 
-      // ============================================================
-      // LOGIN
-      // ============================================================
 
-      /*
-        IMPORTANT:
-        The previous implementation automatically inserted the
-        hard-coded email into the login field.
-
-        That behavior has intentionally been removed.
-        The email field now remains empty until the user enters it.
-      */
+      /* =======================================================
+         LOGIN
+      ======================================================== */
 
       $("#login-form")
         .addEventListener(
           "submit",
-          e => {
+          event => {
 
-            e.preventDefault();
+            event.preventDefault();
+
 
             const email =
-              $("#email").value.trim();
+              $("#email")
+                .value
+                .trim();
 
-            const pw =
-              $("#password").value;
 
-            const err =
+            const password =
+              $("#password")
+                .value;
+
+
+            const error =
               $("#login-error");
 
-            err.textContent = "";
+
+            error.textContent = "";
+
 
             if (
               !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
                 .test(email)
             ) {
 
-              err.textContent =
+              error.textContent =
                 "Please enter a valid email address.";
 
               return;
+
             }
 
-            if (pw.length < 8) {
 
-              err.textContent =
+            if (password.length < 8) {
+
+              error.textContent =
                 "Password must be at least 8 characters.";
 
               return;
+
             }
 
-            /*
-              Demo-only credential check retained
-              from the original implementation.
 
-              Production applications must perform
-              authentication on a secure backend.
-            */
             if (
-              email !== HARDCODED_EMAIL ||
-              pw !== HARDCODED_PASSWORD
+              email !==
+                HARDCODED_EMAIL ||
+
+              password !==
+                HARDCODED_PASSWORD
             ) {
 
-              err.textContent =
+              error.textContent =
                 "Invalid email or password. Please try again.";
 
               return;
+
             }
+
 
             sessionStorage.setItem(
               "northstar_session",
               "active"
             );
 
+
             route("wallet");
+
           }
         );
 
-      // ============================================================
-      // LOGOUT
-      // ============================================================
+
+      /* =======================================================
+         LOGOUT
+      ======================================================== */
 
       $("#logout")
         .addEventListener(
@@ -1750,23 +3022,16 @@
               "northstar_session"
             );
 
+
             route("home");
+
           }
         );
 
-      // ============================================================
-      // SEND SERVICE BLOCK
-      // ============================================================
 
-      /*
-        The Send operation is intentionally blocked for every user,
-        regardless of location.
-
-        This guard executes BEFORE any transaction preparation,
-        transaction validation, signing, or processing.
-
-        No geographic lookup is performed.
-      */
+      /* =======================================================
+         SEND BLOCK
+      ======================================================== */
 
       function showServiceUnavailable() {
 
@@ -1775,34 +3040,39 @@
             "service-unavailable-modal"
           );
 
-        if (!modal) return;
+
+        if (!modal) {
+          return;
+        }
+
 
         if (
-          typeof modal.showModal === "function"
+          typeof modal.showModal ===
+          "function"
         ) {
 
           modal.showModal();
 
+
           requestAnimationFrame(() => {
 
-            const close =
-              document.getElementById(
-                "service-error-close"
-              );
-
-            if (close) {
-              close.focus();
-            }
+            $("#service-error-close")
+              ?.focus();
 
           });
 
-        } else {
+        }
+
+        else {
 
           alert(
             "This service is not available in your country"
           );
+
         }
+
       }
+
 
       $("#send-btn")
         .addEventListener(
@@ -1810,19 +3080,14 @@
           event => {
 
             event.preventDefault();
+
             event.stopPropagation();
 
-            /*
-              Deliberately no transaction-processing
-              code is called here.
-            */
             showServiceUnavailable();
+
           }
         );
 
-      // ============================================================
-      // SERVICE ERROR CLOSE
-      // ============================================================
 
       $("#service-error-close")
         .addEventListener(
@@ -1834,138 +3099,653 @@
                 "service-unavailable-modal"
               );
 
+
             if (modal) {
               modal.close();
             }
 
-            const sendBtn =
-              document.getElementById(
-                "send-btn"
-              );
 
-            if (sendBtn) {
-              sendBtn.focus();
-            }
+            $("#send-btn")?.focus();
+
           }
         );
 
-      // Close service error with Escape/browser dialog behavior.
+
       $("#service-unavailable-modal")
         .addEventListener(
           "close",
           () => {
 
-            const sendBtn =
-              document.getElementById(
-                "send-btn"
-              );
+            $("#send-btn")?.focus();
 
-            if (
-              sendBtn &&
-              document.body.contains(sendBtn)
-            ) {
-              sendBtn.focus();
-            }
           }
         );
 
-      // ============================================================
-      // RECEIVE MODAL
-      // ============================================================
+
+      /* =======================================================
+         RECEIVE MODAL
+      ======================================================== */
 
       document
-        .querySelectorAll("[data-modal]")
-        .forEach(b => {
+        .querySelectorAll(
+          "[data-modal]"
+        )
+        .forEach(button => {
 
-          b.addEventListener(
+          button.addEventListener(
             "click",
             () => {
 
-              const modalId =
-                `${b.dataset.modal}-modal`;
-
               const dialog =
                 document.getElementById(
-                  modalId
+                  `${button.dataset.modal}-modal`
                 );
 
-              if (!dialog) return;
+
+              if (!dialog) {
+                return;
+              }
+
 
               dialog.showModal();
 
+
               if (
-                b.dataset.modal === "receive"
+                button.dataset.modal ===
+                "receive"
               ) {
 
                 makeQR(
                   $("#modal-qr")
                 );
 
+
                 $("#modal-address")
                   .textContent =
-                    DEMO_ADDRESS;
+                  DEMO_ADDRESS;
+
               }
+
             }
           );
+
         });
 
-      // ============================================================
-      // SEND FEE DISPLAY
-      // ============================================================
+
+      /* =======================================================
+         SEND FEE
+      ======================================================== */
 
       $("#fee")
         .addEventListener(
           "input",
-          e => {
+          event => {
 
             $("#fee-output")
               .textContent =
-                `${e.target.value} sat/vB`;
+              `${event.target.value} sat/vB`;
+
           }
         );
 
-      // ============================================================
-      // RECEIVE COPY
-      // ============================================================
+
+      /* =======================================================
+         RECEIVE COPY
+      ======================================================== */
 
       $("#modal-copy")
         .addEventListener(
           "click",
           () => {
 
-            if (
-              navigator.clipboard
-            ) {
+            navigator.clipboard?.writeText(
+              DEMO_ADDRESS
+            );
 
-              navigator.clipboard
-                .writeText(
-                  DEMO_ADDRESS
-                );
-            }
           }
         );
 
-      // ============================================================
-      // INIT
-      // ============================================================
+
+      /* =======================================================
+         RECEIPT
+      ======================================================== */
+
+      const receiptModal =
+        document.getElementById(
+          "bitcoin-receipt"
+        );
+
+
+      /*
+        Shortens long transaction IDs and
+        addresses visually while retaining
+        the complete value in the title attribute.
+      */
+
+      function shorten(
+        value,
+        start = 10,
+        end = 8
+      ) {
+
+        if (!value) {
+          return "—";
+        }
+
+
+        if (
+          value.length <=
+          start + end
+        ) {
+
+          return value;
+
+        }
+
+
+        return (
+          value.slice(0, start) +
+          "…" +
+          value.slice(-end)
+        );
+
+      }
+
+
+      function formatBtc(value) {
+
+        return `${
+          Number(value).toFixed(8)
+        } BTC`;
+
+      }
+
+
+      function formatMoney(
+        value,
+        currencyCode = "USD"
+      ) {
+
+        return new Intl.NumberFormat(
+          undefined,
+          {
+            style: "currency",
+
+            currency:
+              currencyCode,
+
+            minimumFractionDigits:
+              2,
+
+            maximumFractionDigits:
+              2
+          }
+        ).format(value);
+
+      }
+
+
+      /*
+        Opens the receipt ONLY for txs[0],
+        which is the most recent transaction.
+      */
+
+      function openLatestReceipt() {
+
+        const latest =
+          txs[0];
+
+
+        if (
+          !latest?.receipt ||
+          !receiptModal
+        ) {
+
+          return;
+
+        }
+
+
+        receiptPreviousFocus =
+          document.activeElement;
+
+
+        const receipt =
+          latest.receipt;
+
+
+        const date =
+          new Date(
+            receipt.timestamp
+          );
+
+
+        /* Main amount */
+
+        $("#receipt-total")
+          .textContent =
+          `-${Number(
+            receipt.amountBtc
+          ).toFixed(8)} BTC`;
+
+
+        /* Transaction ID */
+
+        $("#receipt-txid")
+          .textContent =
+          shorten(
+            receipt.txid
+          );
+
+
+        $("#receipt-txid")
+          .title =
+          receipt.txid;
+
+
+        /* Status */
+
+        $("#receipt-status")
+          .textContent =
+          receipt.status;
+
+
+        /* Local timestamp */
+
+        $("#receipt-date")
+          .textContent =
+          date.toLocaleString();
+
+
+        /* ISO timestamp */
+
+        $("#receipt-iso")
+          .textContent =
+          date.toISOString();
+
+
+        /* Wallet */
+
+        $("#receipt-wallet")
+          .textContent =
+          receipt.walletLabel;
+
+
+        /* Sender */
+
+        $("#receipt-sender")
+          .textContent =
+          shorten(
+            receipt.senderAddress
+          );
+
+
+        $("#receipt-sender")
+          .title =
+          receipt.senderAddress;
+
+
+        /* Receiver */
+
+        $("#receipt-receiver")
+          .textContent =
+          shorten(
+            receipt.receiverAddress
+          );
+
+
+        $("#receipt-receiver")
+          .title =
+          receipt.receiverAddress;
+
+
+        /* BTC amount */
+
+        $("#receipt-amount")
+          .textContent =
+          formatBtc(
+            receipt.amountBtc
+          );
+
+
+        /* Exchange rate */
+
+        $("#receipt-rate")
+          .textContent =
+          `1 BTC = ${
+            formatMoney(
+              receipt.exchangeRate,
+              receipt.fiatCurrency
+            )
+          }`;
+
+
+        /* Fiat equivalent */
+
+        $("#receipt-fiat")
+          .textContent =
+          formatMoney(
+            receipt.fiatEquivalent,
+            receipt.fiatCurrency
+          );
+
+
+        /* Network fee */
+
+        $("#receipt-fee")
+          .textContent =
+          `-${formatBtc(
+            receipt.feeBtc
+          )}`;
+
+
+        /* Confirmations */
+
+        $("#receipt-confirmations")
+          .textContent =
+          Number(
+            receipt.confirmations
+          ).toLocaleString();
+
+
+        /* Block */
+
+        $("#receipt-block")
+          .textContent =
+          receipt.blockHeight
+            ? Number(
+                receipt.blockHeight
+              ).toLocaleString()
+            : "Unconfirmed";
+
+
+        /* QR code */
+
+        const qr =
+          $("#receipt-qr");
+
+
+        qr.innerHTML = "";
+
+
+        if (window.QRCode) {
+
+          new QRCode(
+            qr,
+            {
+
+              /*
+                The QR contains the
+                demo transaction ID.
+              */
+
+              text:
+                receipt.txid,
+
+              width:
+                150,
+
+              height:
+                150,
+
+              colorDark:
+                "#111827",
+
+              colorLight:
+                "#ffffff",
+
+              correctLevel:
+                QRCode.CorrectLevel.M
+
+            }
+          );
+
+        }
+
+        else {
+
+          qr.textContent =
+            "QR unavailable";
+
+        }
+
+
+        /* Open modal */
+
+        receiptModal.showModal();
+
+
+        requestAnimationFrame(() => {
+
+          $("#receipt-close")
+            ?.focus();
+
+        });
+
+      }
+
+
+      /* =======================================================
+         RECEIPT CLOSE
+      ======================================================== */
+
+      $("#receipt-close")
+        .addEventListener(
+          "click",
+          () => {
+
+            receiptModal.close();
+
+          }
+        );
+
+
+      /*
+        Clicking outside the white receipt
+        closes the dialog.
+      */
+
+      receiptModal
+        .addEventListener(
+          "click",
+          event => {
+
+            if (
+              event.target ===
+              receiptModal
+            ) {
+
+              receiptModal.close();
+
+            }
+
+          }
+        );
+
+
+      /*
+        Restore keyboard focus after closing.
+      */
+
+      receiptModal
+        .addEventListener(
+          "close",
+          () => {
+
+            if (
+              receiptPreviousFocus &&
+              typeof
+                receiptPreviousFocus.focus ===
+                  "function"
+            ) {
+
+              receiptPreviousFocus.focus();
+
+            }
+
+          }
+        );
+
+
+      /* =======================================================
+         PRINT / PDF
+      ======================================================== */
+
+      $("#receipt-print")
+        .addEventListener(
+          "click",
+          () => {
+
+            /*
+              Browser print dialog lets the user
+              choose "Save as PDF".
+            */
+
+            window.print();
+
+          }
+        );
+
+
+      /* =======================================================
+         PNG DOWNLOAD
+      ======================================================== */
+
+      $("#receipt-png")
+        .addEventListener(
+          "click",
+          async () => {
+
+            const receipt =
+              document.getElementById(
+                "bitcoin-receipt-content"
+              );
+
+
+            const button =
+              $("#receipt-png");
+
+
+            if (
+              !receipt ||
+              !window.html2canvas
+            ) {
+
+              return;
+
+            }
+
+
+            const oldText =
+              button.textContent;
+
+
+            button.textContent =
+              "Preparing…";
+
+
+            button.disabled = true;
+
+
+            try {
+
+              const canvas =
+                await html2canvas(
+                  receipt,
+                  {
+
+                    backgroundColor:
+                      "#ffffff",
+
+                    scale:
+                      Math.min(
+                        window.devicePixelRatio ||
+                          1,
+                        2
+                      ),
+
+                    useCORS:
+                      true
+
+                  }
+                );
+
+
+              const link =
+                document.createElement(
+                  "a"
+                );
+
+
+              link.download =
+                "northstar-bitcoin-demo-receipt.png";
+
+
+              link.href =
+                canvas.toDataURL(
+                  "image/png"
+                );
+
+
+              link.click();
+
+            }
+
+            catch (_) {
+
+              /*
+                Deliberately don't log transaction
+                information to the console.
+              */
+
+            }
+
+            finally {
+
+              button.textContent =
+                oldText;
+
+              button.disabled =
+                false;
+
+            }
+
+          }
+        );
+
+
+      /* =======================================================
+         INITIALIZATION
+      ======================================================== */
 
       renderTx();
+
       renderBalance();
+
       fetchPrice();
+
 
       setInterval(
         fetchPrice,
         30000
       );
 
+
       setTimeout(
         () => {
+
           makeQR(
             $("#qrcode")
           );
+
         },
         700
       );
+
+
+      /*
+        Restore wallet if a demo session exists.
+      */
 
       if (
         sessionStorage.getItem(
@@ -1974,9 +3754,11 @@
       ) {
 
         route("wallet");
+
       }
 
     })();
+
   </script>
 
 </body>
