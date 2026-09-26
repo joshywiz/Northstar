@@ -8,6 +8,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
     rel="stylesheet"
@@ -620,6 +621,12 @@
       color: #e78d8d;
     }
 
+    /* ADDED FOR PENDING TRANSACTIONS */
+
+    .pending {
+      color: #e6ad43;
+    }
+
     /* =========================================================
        NORMAL MODALS
     ========================================================= */
@@ -741,7 +748,6 @@
 
     /* =========================================================
        TRANSACTION RECEIPT
-       These styles are isolated with ns- prefix.
     ========================================================= */
 
     .ns-receipt-modal {
@@ -933,21 +939,21 @@
       z-index: 2;
     }
 
-    /* Most recent transaction is clickable */
+    /* Transactions with receipts are clickable */
 
-    .ns-latest-tx {
+    .ns-receipt-tx {
       cursor: pointer;
       border-radius: 10px;
       transition: background .18s ease;
     }
 
-    .ns-latest-tx:hover,
-    .ns-latest-tx:focus-visible {
+    .ns-receipt-tx:hover,
+    .ns-receipt-tx:focus-visible {
       background: rgba(230,173,67,.08);
       outline: none;
     }
 
-    .ns-latest-tx:focus-visible {
+    .ns-receipt-tx:focus-visible {
       box-shadow: 0 0 0 2px #e6ad43;
     }
 
@@ -1078,6 +1084,7 @@
       .ns-receipt-row {
         grid-template-columns: 36% 64%;
       }
+
     }
 
   </style>
@@ -1087,7 +1094,7 @@
 
   <!-- =========================================================
        TOPBAR
-  ========================================================= -->
+  ========================================================== -->
 
   <header class="topbar">
 
@@ -1510,11 +1517,13 @@
           </div>
 
 
+          <!-- UPDATED BALANCE -->
+
           <div
             id="balance-main"
             class="balance">
 
-            $1,589,513.00
+            $1,517,513.00
 
           </div>
 
@@ -1669,7 +1678,7 @@
               class="pill"
               id="tx-count">
 
-              2 items
+              4 items
 
             </span>
 
@@ -1933,11 +1942,13 @@
           </div>
 
 
-         <!-- <div class="ns-receipt-demo">
+          <!-- DEMO RECEIPT REMAINS HIDDEN -->
 
+          <!--
+          <div class="ns-receipt-demo">
             DEMO RECEIPT
-
-          </div> -->
+          </div>
+          -->
 
         </header>
 
@@ -2236,7 +2247,12 @@
          DEMO CONFIGURATION
       ======================================================== */
 
-      const DEMO_BALANCE_USD = 1589513;
+      /*
+        UPDATED:
+        $1,589,513 - $72,000 = $1,517,513
+      */
+
+      const DEMO_BALANCE_USD = 1517513;
 
       const DEMO_ADDRESS =
         "32runr2gL5Xsk8xYsn92GTbF5WST1jYowE";
@@ -2265,14 +2281,101 @@
 
       /* =======================================================
          TRANSACTION DATA
-         
-         IMPORTANT:
+
          This is demonstration data.
-         Replace with verified backend/blockchain data
-         before using a receipt as a real transaction record.
       ======================================================== */
 
       const txs = [
+
+        /* =====================================================
+           PENDING TRANSACTION
+           No + or - signs
+           No receipt
+        ====================================================== */
+
+        {
+          icon: "⏳",
+
+          title: "Pending Bitcoin",
+
+          sub: "sept 26 • pending",
+
+          amount: "2.26114 BTC",
+
+          usd: "$190,000.00",
+
+          cls: "pending"
+        },
+
+
+        /* =====================================================
+           $72,000 TRANSACTION
+           HAS RECEIPT
+        ====================================================== */
+
+        {
+          icon: "↑",
+
+          title: "Sent Bitcoin",
+
+          sub: "sept 26 • 4 confirmations",
+
+          amount: "-0.85683 BTC",
+
+          usd: "-$72,000.00",
+
+          cls: "sent",
+
+          receipt: {
+
+            txid:
+              "TXID_72k_8a4c91d2e7f6",
+
+            timestamp:
+              "2026-09-26T06:00:00Z",
+
+            amountBtc:
+              0.85683,
+
+            fiatCurrency:
+              "USD",
+
+            exchangeRate:
+              84030.97,
+
+            fiatEquivalent:
+              72000.00,
+
+            feeBtc:
+              0.00065,
+
+            senderAddress:
+              "32runr2gL5Xsk8xYsn92GTbF5WST1jYowE",
+
+            receiverAddress:
+              "bc1q4n8v2m6k9r3x7c5d1p8s0j4h6t2w9e7y3u5i1",
+
+            confirmations:
+              4,
+
+            blockHeight:
+              916000,
+
+            status:
+              "Successful",
+
+            walletLabel:
+              "Northstar Bitcoin Wallet"
+
+          }
+
+        },
+
+
+        /* =====================================================
+           $200,000 TRANSACTION
+           HAS RECEIPT
+        ====================================================== */
 
         {
           icon: "↑",
@@ -2290,7 +2393,7 @@
           receipt: {
 
             txid:
-              "DEMO_TXID_7f2a91c4b83d5e6f9a1c",
+              "TXID_7f2a91c4b83d5e6f9a1c",
 
             timestamp:
               "2026-09-22T07:45:00Z",
@@ -2311,10 +2414,10 @@
               0.00065,
 
             senderAddress:
-              "bc1qdemo-sender-address-replace-me",
+              "32runr2gL5Xsk8xYsn92GTbF5WST1jYowE",
 
             receiverAddress:
-              "bc1qdemo-receiver-address-replace-me",
+              "bc1q4n8v2m6k9r3x7c5d1p8s0j4h6t2w9e7y3u5i1",
 
             confirmations:
               4,
@@ -2333,8 +2436,12 @@
         },
 
 
-        {
+        /* =====================================================
+           RECEIVED TRANSACTION
+           No receipt
+        ====================================================== */
 
+        {
           icon: "↓",
 
           title: "Received Bitcoin",
@@ -2346,7 +2453,6 @@
           usd: "+$1,789,513.00",
 
           cls: "received"
-
         }
 
       ];
@@ -2496,27 +2602,38 @@
         container.innerHTML =
           txs.map((transaction, index) => {
 
-            const isLatest =
-              index === 0 &&
-              transaction.receipt;
+            /*
+              ANY transaction that has a receipt
+              becomes clickable.
+
+              Therefore:
+              index 1 = $72,000 receipt
+              index 2 = $200,000 receipt
+
+              Pending and received transactions
+              have no receipt and remain non-clickable.
+            */
+
+            const hasReceipt =
+              Boolean(transaction.receipt);
 
 
             return `
 
               <div
                 class="tx ${
-                  isLatest
-                    ? "ns-latest-tx"
+                  hasReceipt
+                    ? "ns-receipt-tx"
                     : ""
                 }"
 
                 ${
-                  isLatest
+                  hasReceipt
                     ? `
-                      data-receipt-trigger
+                      data-receipt-index="${index}"
                       role="button"
                       tabindex="0"
-                      aria-label="View receipt for most recent transaction"
+                      aria-label="View transaction receipt for ${transaction.title}"
                     `
                     : ""
                 }
@@ -2582,43 +2699,52 @@
 
 
         /*
-          Only the most recent transaction
-          receives the receipt functionality.
+          Attach receipt functionality to every
+          transaction that contains receipt data.
         */
 
-        const latest =
-          container.querySelector(
-            "[data-receipt-trigger]"
-          );
+        container
+          .querySelectorAll(
+            "[data-receipt-index]"
+          )
+          .forEach(transactionElement => {
+
+            const index =
+              Number(
+                transactionElement.dataset
+                  .receiptIndex
+              );
 
 
-        if (latest) {
+            transactionElement.addEventListener(
+              "click",
+              () => {
 
-          latest.addEventListener(
-            "click",
-            openLatestReceipt
-          );
-
-
-          latest.addEventListener(
-            "keydown",
-            event => {
-
-              if (
-                event.key === "Enter" ||
-                event.key === " "
-              ) {
-
-                event.preventDefault();
-
-                openLatestReceipt();
+                openReceipt(index);
 
               }
+            );
 
-            }
-          );
 
-        }
+            transactionElement.addEventListener(
+              "keydown",
+              event => {
+
+                if (
+                  event.key === "Enter" ||
+                  event.key === " "
+                ) {
+
+                  event.preventDefault();
+
+                  openReceipt(index);
+
+                }
+
+              }
+            );
+
+          });
 
       }
 
@@ -3216,12 +3342,6 @@
         );
 
 
-      /*
-        Shortens long transaction IDs and
-        addresses visually while retaining
-        the complete value in the title attribute.
-      */
-
       function shorten(
         value,
         start = 10,
@@ -3286,18 +3406,24 @@
 
 
       /*
-        Opens the receipt ONLY for txs[0],
-        which is the most recent transaction.
+        UPDATED RECEIPT FUNCTION
+
+        It can now open the receipt for:
+        - $72,000 transaction
+        - $200,000 transaction
+
+        The transaction index is passed into
+        this function.
       */
 
-      function openLatestReceipt() {
+      function openReceipt(index) {
 
-        const latest =
-          txs[0];
+        const transaction =
+          txs[index];
 
 
         if (
-          !latest?.receipt ||
+          !transaction?.receipt ||
           !receiptModal
         ) {
 
@@ -3311,7 +3437,7 @@
 
 
         const receipt =
-          latest.receipt;
+          transaction.receipt;
 
 
         const date =
@@ -3474,11 +3600,6 @@
             qr,
             {
 
-              /*
-                The QR contains the
-                demo transaction ID.
-              */
-
               text:
                 receipt.txid,
 
@@ -3508,6 +3629,16 @@
             "QR unavailable";
 
         }
+
+
+        /* Update receipt title based on transaction */
+
+        $("#bitcoin-receipt-title")
+          .textContent =
+          transaction.title ===
+            "Sent Bitcoin"
+            ? "Sent BTC"
+            : "Bitcoin Transaction";
 
 
         /* Open modal */
@@ -3595,11 +3726,6 @@
         .addEventListener(
           "click",
           () => {
-
-            /*
-              Browser print dialog lets the user
-              choose "Save as PDF".
-            */
 
             window.print();
 
