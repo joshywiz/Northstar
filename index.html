@@ -1,3891 +1,3042 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Northstar Bitcoin wallet interface — demo UI">
-  <title>Northstar Bitcoin Wallet</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet"
-  >
-
-  <!-- QR code -->
-  <script
-    defer
-    src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js">
-  </script>
-
-  <!-- Used only for PNG receipt export -->
-  <script
-    defer
-    src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
-  </script>
-
-  <style>
-
-    /* =========================================================
-       RESET & BASE
-    ========================================================= */
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
-      margin: 0;
-      background: #090d14;
-      color: #f4f6f8;
-      font-family: Inter, system-ui, sans-serif;
-      line-height: 1.55;
-    }
-
-    body.wallet-active {
-      overflow: hidden;
-    }
-
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    button,
-    input {
-      font: inherit;
-    }
-
-    button {
-      cursor: pointer;
-    }
-
-    /* =========================================================
-       TOPBAR
-    ========================================================= */
-
-    .topbar {
-      height: 76px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 6vw;
-      border-bottom: 1px solid #1d2530;
-      position: sticky;
-      top: 0;
-      background: rgba(9,13,20,.88);
-      backdrop-filter: blur(16px);
-      z-index: 10;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 800;
-      letter-spacing: -.03em;
-    }
-
-    .brand-mark {
-      display: grid;
-      place-items: center;
-      width: 32px;
-      height: 32px;
-      border-radius: 10px;
-      background: #e6ad43;
-      color: #111;
-      font-weight: 900;
-    }
-
-    .brand-mark.large {
-      width: 54px;
-      height: 54px;
-      border-radius: 16px;
-      font-size: 24px;
-      margin-bottom: 20px;
-    }
-
-    .topbar nav {
-      display: flex;
-      align-items: center;
-      gap: 28px;
-      color: #aeb7c4;
-      font-size: 14px;
-    }
-
-    .topbar nav a:hover {
-      color: #fff;
-    }
-
-    .nav-login {
-      border: 0;
-      background: #e6ad43;
-      color: #111;
-      padding: 11px 17px;
-      border-radius: 10px;
-      font-weight: 700;
-    }
-
-    /* =========================================================
-       SECTIONS
-    ========================================================= */
-
-    .section {
-      max-width: 1180px;
-      margin: auto;
-      padding: 92px 6vw;
-    }
-
-    .hero {
-      display: grid;
-      grid-template-columns: 1.15fr .85fr;
-      gap: 70px;
-      align-items: center;
-      min-height: 690px;
-    }
-
-    .eyebrow {
-      font-size: 11px;
-      letter-spacing: .17em;
-      font-weight: 800;
-      color: #d2a14a;
-    }
-
-    .hero h1 {
-      font-size: clamp(48px, 7vw, 88px);
-      line-height: .98;
-      letter-spacing: -.065em;
-      margin: 18px 0 25px;
-    }
-
-    .hero h1 span {
-      color: #e6ad43;
-    }
-
-    .hero-copy > p {
-      color: #aab3c0;
-      max-width: 650px;
-      font-size: 18px;
-    }
-
-    .hero-actions {
-      display: flex;
-      gap: 12px;
-      margin: 30px 0;
-    }
-
-    .btn {
-      border: 1px solid #303947;
-      border-radius: 11px;
-      padding: 12px 18px;
-      background: transparent;
-      color: #f5f7fa;
-      font-weight: 700;
-      transition: .2s;
-    }
-
-    .btn:hover {
-      transform: translateY(-1px);
-      border-color: #596577;
-    }
-
-    .btn.primary {
-      background: #e6ad43;
-      border-color: #e6ad43;
-      color: #111;
-    }
-
-    .btn.ghost.light {
-      background: #fff;
-      color: #111;
-      border-color: #fff;
-    }
-
-    .full {
-      width: 100%;
-    }
-
-    .trust-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      color: #707c8c;
-      font-size: 12px;
-    }
-
-    /* =========================================================
-       CARDS
-    ========================================================= */
-
-    .price-card,
-    .feature-card,
-    .security,
-    .auth-card,
-    .balance-card,
-    .mini-card,
-    .panel {
-      border: 1px solid #252e3a;
-      background: linear-gradient(
-        145deg,
-        #111823,
-        #0d131c
-      );
-      box-shadow: 0 22px 70px rgba(0,0,0,.22);
-    }
-
-    .price-card {
-      padding: 28px;
-      border-radius: 22px;
-    }
-
-    .price-head,
-    .balance-top,
-    .panel-head,
-    .dashboard-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 20px;
-    }
-
-    .price-head {
-      color: #aeb7c4;
-    }
-
-    .status-dot {
-      color: #73c991;
-      font-size: 12px;
-    }
-
-    .big-price {
-      font-size: 45px;
-      font-weight: 800;
-      letter-spacing: -.04em;
-      margin: 30px 0 2px;
-    }
-
-    .price-change {
-      font-size: 14px;
-      color: #73c991;
-    }
-
-    .sparkline {
-      height: 100px;
-      display: flex;
-      align-items: flex-end;
-      gap: 7px;
-      margin: 20px 0;
-    }
-
-    .sparkline i {
-      flex: 1;
-      border-radius: 6px 6px 2px 2px;
-      background: #e6ad43;
-      opacity: .7;
-    }
-
-    .sparkline i:nth-child(1) { height: 35%; }
-    .sparkline i:nth-child(2) { height: 46%; }
-    .sparkline i:nth-child(3) { height: 39%; }
-    .sparkline i:nth-child(4) { height: 62%; }
-    .sparkline i:nth-child(5) { height: 54%; }
-    .sparkline i:nth-child(6) { height: 76%; }
-    .sparkline i:nth-child(7) { height: 68%; }
-    .sparkline i:nth-child(8) { height: 83%; }
-    .sparkline i:nth-child(9) { height: 72%; }
-    .sparkline i:nth-child(10) { height: 91%; }
-
-    .price-card small {
-      color: #687383;
-    }
-
-    .section-heading {
-      max-width: 700px;
-      margin-bottom: 35px;
-    }
-
-    .section h2 {
-      font-size: clamp(32px, 4vw, 50px);
-      line-height: 1.05;
-      letter-spacing: -.04em;
-      margin: 10px 0 0;
-    }
-
-    .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-    }
-
-    .feature-card {
-      padding: 28px;
-      border-radius: 16px;
-      min-height: 190px;
-    }
-
-    .feature-card b {
-      color: #657080;
-      font-size: 12px;
-    }
-
-    .feature-card h3 {
-      margin: 40px 0 8px;
-    }
-
-    .feature-card p,
-    .security p,
-    .muted {
-      color: #8f9baa;
-    }
-
-    .security {
-      border-radius: 22px;
-      padding: 45px;
-      margin-bottom: 80px;
-    }
-
-    .security p {
-      max-width: 800px;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    .view {
-      min-height: calc(100vh - 76px);
-      padding-top: 80px;
-    }
-
-    /* =========================================================
-       LOGIN
-    ========================================================= */
-
-    .auth-card {
-      max-width: 440px;
-      margin: 0 auto;
-      border-radius: 22px;
-      padding: 36px;
-    }
-
-    .auth-card h2 {
-      margin: 0 0 6px;
-      font-size: 34px;
-    }
-
-    .auth-card form {
-      display: grid;
-      gap: 18px;
-      margin: 28px 0;
-    }
-
-    .auth-card label,
-    .modal label {
-      display: grid;
-      gap: 7px;
-      color: #aeb7c4;
-      font-size: 13px;
-      font-weight: 600;
-    }
-
-    .auth-card input,
-    .modal input {
-      width: 100%;
-      border: 1px solid #303947;
-      background: #0a1018;
-      color: #fff;
-      padding: 13px;
-      border-radius: 10px;
-      outline: none;
-    }
-
-    .auth-card input:focus,
-    .modal input:focus {
-      border-color: #e6ad43;
-    }
-
-    .form-error {
-      color: #ef8e8e;
-      font-size: 13px;
-      min-height: 18px;
-    }
-
-    .text-button {
-      border: 0;
-      background: none;
-      color: #8f9baa;
-    }
-
-    /* =========================================================
-       WALLET
-    ========================================================= */
-
-    #wallet.view {
-      position: fixed;
-      inset: 76px 0 0 0;
-      z-index: 20;
-      width: 100%;
-      max-width: none;
-      margin: 0;
-      overflow-y: auto;
-      background: #090d14;
-      padding-top: 80px;
-      padding-bottom: 80px;
-    }
-
-    #wallet.view > * {
-      max-width: 1250px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .dashboard {
-      max-width: 1250px;
-    }
-
-    .dashboard-head {
-      align-items: center;
-      margin-bottom: 30px;
-    }
-
-    .dashboard-head h2 {
-      font-size: 36px;
-      margin: 5px 0;
-    }
-
-    .balance-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr;
-      gap: 16px;
-    }
-
-    .balance-card {
-      border-radius: 20px;
-      padding: 28px;
-    }
-
-    .balance {
-      font-size: 52px;
-      font-weight: 800;
-      letter-spacing: -.05em;
-      margin: 18px 0 0;
-    }
-
-    .balance-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 25px;
-    }
-
-    .toggle,
-    .pill {
-      border: 1px solid #303947;
-      background: #151d27;
-      color: #bfc8d3;
-      border-radius: 999px;
-      padding: 6px 10px;
-      font-size: 11px;
-    }
-
-    .mini-card {
-      border-radius: 20px;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 7px;
-    }
-
-    .mini-card span {
-      color: #7f8a99;
-      font-size: 12px;
-    }
-
-    .mini-card strong {
-      font-size: 17px;
-    }
-
-    .mini-card small {
-      color: #6f7a89;
-    }
-
-    .wallet-grid {
-      display: grid;
-      grid-template-columns: .75fr 1.25fr;
-      gap: 16px;
-      margin-top: 16px;
-    }
-
-    .panel {
-      border-radius: 20px;
-      padding: 25px;
-    }
-
-    .panel-head h3 {
-      margin: 4px 0 0;
-    }
-
-    .icon-btn {
-      background: none;
-      border: 1px solid #303947;
-      color: #cdd5df;
-      border-radius: 9px;
-      padding: 8px;
-    }
-
-    .qr {
-      background: #fff;
-      padding: 12px;
-      width: 190px;
-      height: 190px;
-      display: grid;
-      place-items: center;
-      margin: 25px auto;
-      border-radius: 12px;
-    }
-
-    .qr img {
-      max-width: 100%;
-      height: auto;
-    }
-
-    .address-panel code,
-    .modal code {
-      display: block;
-      word-break: break-all;
-      color: #9ea9b8;
-      font-size: 11px;
-      background: #0a1018;
-      padding: 12px;
-      border-radius: 9px;
-      margin-bottom: 12px;
-    }
-
-    /* =========================================================
-       TRANSACTIONS
-    ========================================================= */
-
-    .transactions {
-      margin-top: 15px;
-    }
-
-    .tx {
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      align-items: center;
-      gap: 14px;
-      padding: 16px 0;
-      border-bottom: 1px solid #222b36;
-    }
-
-    .tx:last-child {
-      border-bottom: 0;
-    }
-
-    .tx-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 11px;
-      display: grid;
-      place-items: center;
-      background: #17202c;
-      color: #e6ad43;
-    }
-
-    .tx-title {
-      font-weight: 700;
-      font-size: 14px;
-    }
-
-    .tx-sub {
-      font-size: 11px;
-      color: #717d8c;
-    }
-
-    .tx-amount {
-      text-align: right;
-      font-weight: 700;
-    }
-
-    .received {
-      color: #72c995;
-    }
-
-    .sent {
-      color: #e78d8d;
-    }
-
-    /* ADDED FOR PENDING TRANSACTIONS */
-
-    .pending {
-      color: #e6ad43;
-    }
-
-    /* =========================================================
-       NORMAL MODALS
-    ========================================================= */
-
-    dialog {
-      border: 1px solid #303947;
-      border-radius: 20px;
-      background: #101720;
-      color: #fff;
-      width: min(94vw, 450px);
-      padding: 0;
-      box-shadow: 0 30px 100px #000;
-    }
-
-    .modal {
-      padding: 30px;
-      position: relative;
-    }
-
-    .modal h2 {
-      margin: 6px 0 24px;
-    }
-
-    .close {
-      position: absolute;
-      right: 18px;
-      top: 15px;
-      background: none;
-      border: 0;
-      color: #aeb7c4;
-      font-size: 28px;
-    }
-
-    .warning {
-      border: 1px solid #5b4828;
-      background: #2b2112;
-      color: #e4bc6e;
-      border-radius: 10px;
-      padding: 12px;
-      font-size: 12px;
-      margin: 20px 0;
-    }
-
-    .modal output {
-      float: right;
-      color: #e6ad43;
-    }
-
-    .modal input[type="range"] {
-      padding: 0;
-      accent-color: #e6ad43;
-    }
-
-    .modal::backdrop {
-      background: rgba(0,0,0,.72);
-      backdrop-filter: blur(5px);
-    }
-
-    /* =========================================================
-       SERVICE UNAVAILABLE
-    ========================================================= */
-
-    #service-unavailable-modal {
-      width: min(94vw, 430px);
-    }
-
-    .service-error {
-      padding: 32px;
-      text-align: center;
-    }
-
-    .service-error-icon {
-      width: 54px;
-      height: 54px;
-      display: grid;
-      place-items: center;
-      margin: 0 auto 18px;
-      border-radius: 16px;
-      background: #2b2112;
-      color: #e6ad43;
-      font-size: 25px;
-      font-weight: 800;
-    }
-
-    .service-error h2 {
-      margin: 0 0 10px;
-      font-size: 25px;
-    }
-
-    .service-error p {
-      color: #8f9baa;
-      font-size: 14px;
-      margin: 0 0 24px;
-    }
-
-    /* =========================================================
-       FOOTER
-    ========================================================= */
-
-    footer {
-      border-top: 1px solid #1d2530;
-      padding: 30px 6vw;
-      color: #626d7b;
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    footer .legal a {
-      color: #8f9baa;
-      margin: 0 10px 0 0;
-    }
-
-    footer .legal a:hover {
-      color: #fff;
-    }
-
-    /* =========================================================
-       TRANSACTION RECEIPT
-    ========================================================= */
-
-    .ns-receipt-modal {
-      width: min(94vw, 560px);
-      max-height: 94vh;
-      border: 0;
-      padding: 0;
-      border-radius: 24px;
-      background: transparent;
-      color: #111827;
-      overflow: visible;
-    }
-
-    .ns-receipt-modal::backdrop {
-      background: rgba(0,0,0,.78);
-      backdrop-filter: blur(7px);
-    }
-
-    .ns-receipt-wrap {
-      max-height: 94vh;
-      overflow-y: auto;
-      border-radius: 24px;
-    }
-
-    .ns-receipt-card {
-      position: relative;
-      background: #fff;
-      color: #111827;
-      border-radius: 24px;
-      overflow: hidden;
-      box-shadow: 0 35px 100px rgba(0,0,0,.45);
-    }
-
-    .ns-receipt-top {
-      text-align: center;
-      padding: 34px 28px 27px;
-      position: relative;
-    }
-
-    .ns-receipt-top h2 {
-      margin: 0 0 24px;
-      font-size: 25px;
-      color: #111827;
-    }
-
-    .ns-receipt-btc {
-      width: 78px;
-      height: 78px;
-      margin: 0 auto;
-      display: grid;
-      place-items: center;
-      border-radius: 50%;
-      background: #f7931a;
-      color: #fff;
-      font-size: 48px;
-      font-weight: 800;
-      line-height: 1;
-    }
-
-    .ns-receipt-total {
-      margin-top: 22px;
-      font-size: clamp(32px, 8vw, 46px);
-      font-weight: 600;
-      letter-spacing: -.045em;
-      word-break: break-word;
-    }
-
-    .ns-receipt-subtitle {
-      margin-top: 4px;
-      color: #9ca3af;
-      font-size: 15px;
-    }
-
-    .ns-receipt-demo {
-      display: inline-block;
-      margin-top: 10px;
-      padding: 4px 8px;
-      border-radius: 999px;
-      background: #fff4d8;
-      color: #8a6110;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: .08em;
-    }
-
-    .ns-receipt-body {
-      margin: 0 18px 20px;
-      padding: 8px 20px;
-      border-radius: 19px;
-      background: #f7f8fa;
-    }
-
-    .ns-receipt-row {
-      display: grid;
-      grid-template-columns: 38% 62%;
-      gap: 12px;
-      padding: 14px 0;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    .ns-receipt-row:last-child {
-      border-bottom: 0;
-    }
-
-    .ns-receipt-label {
-      color: #6b7280;
-      font-size: 12px;
-      font-weight: 500;
-    }
-
-    .ns-receipt-value {
-      color: #374151;
-      font-size: 12px;
-      font-weight: 700;
-      text-align: right;
-      overflow-wrap: anywhere;
-    }
-
-    .ns-receipt-status {
-      color: #22a06b;
-    }
-
-    .ns-receipt-qr-area {
-      text-align: center;
-      padding: 8px 20px 22px;
-    }
-
-    .ns-receipt-qr {
-      display: inline-flex;
-      padding: 10px;
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 13px;
-      min-width: 170px;
-      min-height: 170px;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .ns-receipt-qr img {
-      display: block;
-    }
-
-    .ns-receipt-qr-area small {
-      display: block;
-      margin-top: 8px;
-      color: #6b7280;
-      font-size: 10px;
-    }
-
-    .ns-receipt-actions {
-      display: flex;
-      gap: 10px;
-      padding: 0 20px 24px;
-    }
-
-    .ns-receipt-action {
-      flex: 1;
-      min-height: 45px;
-      border: 0;
-      border-radius: 11px;
-      background: #111827;
-      color: #fff;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .ns-receipt-action:hover {
-      opacity: .9;
-    }
-
-    .ns-receipt-action.secondary {
-      background: #eef0f3;
-      color: #111827;
-    }
-
-    .ns-receipt-close {
-      position: absolute;
-      right: 14px;
-      top: 13px;
-      width: 38px;
-      height: 38px;
-      border: 0;
-      border-radius: 50%;
-      background: #f1f3f5;
-      color: #374151;
-      font-size: 25px;
-      cursor: pointer;
-      z-index: 2;
-    }
-
-    /* Transactions with receipts are clickable */
-
-    .ns-receipt-tx {
-      cursor: pointer;
-      border-radius: 10px;
-      transition: background .18s ease;
-    }
-
-    .ns-receipt-tx:hover,
-    .ns-receipt-tx:focus-visible {
-      background: rgba(230,173,67,.08);
-      outline: none;
-    }
-
-    .ns-receipt-tx:focus-visible {
-      box-shadow: 0 0 0 2px #e6ad43;
-    }
-
-    /* =========================================================
-       PRINT
-    ========================================================= */
-
-    @media print {
-
-      body * {
-        visibility: hidden !important;
-      }
-
-      #bitcoin-receipt,
-      #bitcoin-receipt * {
-        visibility: visible !important;
-      }
-
-      #bitcoin-receipt {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        max-width: 100%;
-        box-shadow: none;
-      }
-
-      .ns-receipt-actions,
-      .ns-receipt-close {
-        display: none !important;
-      }
-
-      .ns-receipt-card {
-        box-shadow: none;
-        border-radius: 0;
-      }
-
-      .ns-receipt-demo {
-        display: inline-block !important;
-      }
-    }
-
-    /* =========================================================
-       RESPONSIVE
-    ========================================================= */
-
-    @media (max-width: 850px) {
-
-      .hero {
-        grid-template-columns: 1fr;
-        gap: 35px;
-        min-height: auto;
-      }
-
-      .feature-grid,
-      .balance-grid,
-      .wallet-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .topbar {
-        padding: 0 4vw;
-      }
-
-      .topbar nav a {
-        display: none;
-      }
-
-      .section {
-        padding: 65px 5vw;
-      }
-
-      .balance {
-        font-size: 42px;
-      }
-
-      #wallet.view {
-        inset: 76px 0 0 0;
-        padding-top: 65px;
-      }
-    }
-
-    @media (max-width: 480px) {
-
-      .hero h1 {
-        font-size: 48px;
-      }
-
-      .hero-actions {
-        flex-direction: column;
-      }
-
-      .hero-actions .btn {
-        text-align: center;
-      }
-
-      .price-card {
-        padding: 22px;
-      }
-
-      .balance-actions {
-        flex-direction: column;
-      }
-
-      .dashboard-head {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      #wallet.view {
-        padding-top: 50px;
-      }
-
-      .ns-receipt-modal {
-        width: 96vw;
-      }
-
-      .ns-receipt-body {
-        margin-left: 10px;
-        margin-right: 10px;
-        padding-left: 14px;
-        padding-right: 14px;
-      }
-
-      .ns-receipt-actions {
-        flex-direction: column;
-      }
-
-      .ns-receipt-row {
-        grid-template-columns: 36% 64%;
-      }
-
-    }
-
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Northstar Bitcoin wallet interface — demo UI">
+<title>Northstar Bitcoin Wallet</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+
+*{box-sizing:border-box}
+
+html{scroll-behavior:smooth}
+
+body{
+margin:0;
+background:#090d14;
+color:#f4f6f8;
+font-family:Inter,system-ui,sans-serif;
+line-height:1.55
+}
+
+body.wallet-active{overflow:hidden}
+
+a{color:inherit;text-decoration:none}
+
+button,input{font:inherit}
+
+button{cursor:pointer}
+
+.topbar{
+height:76px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:0 6vw;
+border-bottom:1px solid #1d2530;
+position:sticky;
+top:0;
+background:rgba(9,13,20,.88);
+backdrop-filter:blur(16px);
+z-index:10
+}
+
+.brand{
+display:flex;
+align-items:center;
+gap:10px;
+font-weight:800;
+letter-spacing:-.03em
+}
+
+.brand-mark{
+display:grid;
+place-items:center;
+width:32px;
+height:32px;
+border-radius:10px;
+background:#e6ad43;
+color:#111;
+font-weight:900
+}
+
+.brand-mark.large{
+width:54px;
+height:54px;
+border-radius:16px;
+font-size:24px;
+margin-bottom:20px
+}
+
+.topbar nav{
+display:flex;
+align-items:center;
+gap:28px;
+color:#aeb7c4;
+font-size:14px
+}
+
+.topbar nav a:hover{color:#fff}
+
+.nav-login{
+border:0;
+background:#e6ad43;
+color:#111;
+padding:11px 17px;
+border-radius:10px;
+font-weight:700
+}
+
+.section{
+max-width:1180px;
+margin:auto;
+padding:92px 6vw
+}
+
+.hero{
+display:grid;
+grid-template-columns:1.15fr .85fr;
+gap:70px;
+align-items:center;
+min-height:690px
+}
+
+.eyebrow{
+font-size:11px;
+letter-spacing:.17em;
+font-weight:800;
+color:#d2a14a
+}
+
+.hero h1{
+font-size:clamp(48px,7vw,88px);
+line-height:.98;
+letter-spacing:-.065em;
+margin:18px 0 25px
+}
+
+.hero h1 span{color:#e6ad43}
+
+.hero-copy>p{
+color:#aab3c0;
+max-width:650px;
+font-size:18px
+}
+
+.hero-actions{
+display:flex;
+gap:12px;
+margin:30px 0
+}
+
+.btn{
+border:1px solid #303947;
+border-radius:11px;
+padding:12px 18px;
+background:transparent;
+color:#f5f7fa;
+font-weight:700;
+transition:.2s
+}
+
+.btn:hover{
+transform:translateY(-1px);
+border-color:#596577
+}
+
+.btn.primary{
+background:#e6ad43;
+border-color:#e6ad43;
+color:#111
+}
+
+.btn.ghost.light{
+background:#fff;
+color:#111;
+border-color:#fff
+}
+
+.full{width:100%}
+
+.trust-row{
+display:flex;
+flex-wrap:wrap;
+gap:20px;
+color:#707c8c;
+font-size:12px
+}
+
+.price-card,
+.feature-card,
+.security,
+.auth-card,
+.balance-card,
+.mini-card,
+.panel{
+border:1px solid #252e3a;
+background:linear-gradient(145deg,#111823,#0d131c);
+box-shadow:0 22px 70px rgba(0,0,0,.22)
+}
+
+.price-card{
+padding:28px;
+border-radius:22px
+}
+
+.price-head,
+.balance-top,
+.panel-head,
+.dashboard-head{
+display:flex;
+justify-content:space-between;
+align-items:flex-start;
+gap:20px
+}
+
+.price-head{color:#aeb7c4}
+
+.status-dot{
+color:#73c991;
+font-size:12px
+}
+
+.big-price{
+font-size:45px;
+font-weight:800;
+letter-spacing:-.04em;
+margin:30px 0 2px
+}
+
+.price-change{
+font-size:14px;
+color:#73c991
+}
+
+.sparkline{
+height:100px;
+display:flex;
+align-items:flex-end;
+gap:7px;
+margin:20px 0
+}
+
+.sparkline i{
+flex:1;
+border-radius:6px 6px 2px 2px;
+background:#e6ad43;
+opacity:.7
+}
+
+.sparkline i:nth-child(1){height:35%}
+.sparkline i:nth-child(2){height:46%}
+.sparkline i:nth-child(3){height:39%}
+.sparkline i:nth-child(4){height:62%}
+.sparkline i:nth-child(5){height:54%}
+.sparkline i:nth-child(6){height:76%}
+.sparkline i:nth-child(7){height:68%}
+.sparkline i:nth-child(8){height:83%}
+.sparkline i:nth-child(9){height:72%}
+.sparkline i:nth-child(10){height:91%}
+
+.price-card small{color:#687383}
+
+.section-heading{
+max-width:700px;
+margin-bottom:35px
+}
+
+.section h2{
+font-size:clamp(32px,4vw,50px);
+line-height:1.05;
+letter-spacing:-.04em;
+margin:10px 0 0
+}
+
+.feature-grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:16px
+}
+
+.feature-card{
+padding:28px;
+border-radius:16px;
+min-height:190px
+}
+
+.feature-card b{
+color:#657080;
+font-size:12px
+}
+
+.feature-card h3{margin:40px 0 8px}
+
+.feature-card p,
+.security p,
+.muted{
+color:#8f9baa
+}
+
+.security{
+border-radius:22px;
+padding:45px;
+margin-bottom:80px
+}
+
+.security p{max-width:800px}
+
+.hidden{display:none!important}
+
+.view{
+min-height:calc(100vh - 76px);
+padding-top:80px
+}
+
+.auth-card{
+max-width:440px;
+margin:0 auto;
+border-radius:22px;
+padding:36px
+}
+
+.auth-card h2{
+margin:0 0 6px;
+font-size:34px
+}
+
+.auth-card form{
+display:grid;
+gap:18px;
+margin:28px 0
+}
+
+.auth-card label,
+.modal label{
+display:grid;
+gap:7px;
+color:#aeb7c4;
+font-size:13px;
+font-weight:600
+}
+
+.auth-card input,
+.modal input{
+width:100%;
+border:1px solid #303947;
+background:#0a1018;
+color:#fff;
+padding:13px;
+border-radius:10px;
+outline:none
+}
+
+.auth-card input:focus,
+.modal input:focus{
+border-color:#e6ad43
+}
+
+.form-error{
+color:#ef8e8e;
+font-size:13px;
+min-height:18px
+}
+
+.text-button{
+border:0;
+background:none;
+color:#8f9baa
+}
+
+#wallet.view{
+position:fixed;
+inset:76px 0 0 0;
+z-index:20;
+width:100%;
+max-width:none;
+margin:0;
+overflow-y:auto;
+background:#090d14;
+padding-top:80px;
+padding-bottom:80px
+}
+
+#wallet.view>*{
+max-width:1250px;
+margin-left:auto;
+margin-right:auto
+}
+
+.dashboard{max-width:1250px}
+
+.dashboard-head{
+align-items:center;
+margin-bottom:30px
+}
+
+.dashboard-head h2{
+font-size:36px;
+margin:5px 0
+}
+
+.balance-grid{
+display:grid;
+grid-template-columns:2fr 1fr 1fr;
+gap:16px
+}
+
+.balance-card{
+border-radius:20px;
+padding:28px
+}
+
+.balance{
+font-size:52px;
+font-weight:800;
+letter-spacing:-.05em;
+margin:18px 0 0
+}
+
+.balance-actions{
+display:flex;
+gap:10px;
+margin-top:25px
+}
+
+.toggle,
+.pill{
+border:1px solid #303947;
+background:#151d27;
+color:#bfc8d3;
+border-radius:999px;
+padding:6px 10px;
+font-size:11px
+}
+
+.mini-card{
+border-radius:20px;
+padding:24px;
+display:flex;
+flex-direction:column;
+justify-content:center;
+gap:7px
+}
+
+.mini-card span{
+color:#7f8a99;
+font-size:12px
+}
+
+.mini-card strong{font-size:17px}
+
+.mini-card small{color:#6f7a89}
+
+.wallet-grid{
+display:grid;
+grid-template-columns:.75fr 1.25fr;
+gap:16px;
+margin-top:16px
+}
+
+.panel{
+border-radius:20px;
+padding:25px
+}
+
+.panel-head h3{margin:4px 0 0}
+
+.icon-btn{
+background:none;
+border:1px solid #303947;
+color:#cdd5df;
+border-radius:9px;
+padding:8px
+}
+
+.qr{
+background:#fff;
+padding:12px;
+width:190px;
+height:190px;
+display:grid;
+place-items:center;
+margin:25px auto;
+border-radius:12px
+}
+
+.qr img{
+max-width:100%;
+height:auto
+}
+
+.address-panel code,
+.modal code{
+display:block;
+word-break:break-all;
+color:#9ea9b8;
+font-size:11px;
+background:#0a1018;
+padding:12px;
+border-radius:9px;
+margin-bottom:12px
+}
+
+.transactions{margin-top:15px}
+
+.tx{
+display:grid;
+grid-template-columns:auto 1fr auto;
+align-items:center;
+gap:14px;
+padding:16px 0;
+border-bottom:1px solid #222b36
+}
+
+.tx:last-child{border-bottom:0}
+
+.tx-icon{
+width:36px;
+height:36px;
+border-radius:11px;
+display:grid;
+place-items:center;
+background:#17202c;
+color:#e6ad43
+}
+
+.tx-title{
+font-weight:700;
+font-size:14px
+}
+
+.tx-sub{
+font-size:11px;
+color:#717d8c
+}
+
+.tx-amount{
+text-align:right;
+font-weight:700
+}
+
+.received{color:#72c995}
+.sent{color:#e78d8d}
+.pending{color:#e6ad43}
+
+dialog{
+border:1px solid #303947;
+border-radius:20px;
+background:#101720;
+color:#fff;
+width:min(94vw,450px);
+padding:0;
+box-shadow:0 30px 100px #000
+}
+
+.modal{
+padding:30px;
+position:relative
+}
+
+.modal h2{margin:6px 0 24px}
+
+.close{
+position:absolute;
+right:18px;
+top:15px;
+background:none;
+border:0;
+color:#aeb7c4;
+font-size:28px
+}
+
+.warning{
+border:1px solid #5b4828;
+background:#2b2112;
+color:#e4bc6e;
+border-radius:10px;
+padding:12px;
+font-size:12px;
+margin:20px 0
+}
+
+.modal output{
+float:right;
+color:#e6ad43
+}
+
+.modal input[type="range"]{
+padding:0;
+accent-color:#e6ad43
+}
+
+.modal::backdrop{
+background:rgba(0,0,0,.72);
+backdrop-filter:blur(5px)
+}
+
+#service-unavailable-modal{
+width:min(94vw,430px)
+}
+
+.service-error{
+padding:32px;
+text-align:center
+}
+
+.service-error-icon{
+width:54px;
+height:54px;
+display:grid;
+place-items:center;
+margin:0 auto 18px;
+border-radius:16px;
+background:#2b2112;
+color:#e6ad43;
+font-size:25px;
+font-weight:800
+}
+
+.service-error h2{
+margin:0 0 10px;
+font-size:25px
+}
+
+.service-error p{
+color:#8f9baa;
+font-size:14px;
+margin:0 0 24px
+}
+
+footer{
+border-top:1px solid #1d2530;
+padding:30px 6vw;
+color:#626d7b;
+display:flex;
+justify-content:space-between;
+font-size:11px;
+flex-wrap:wrap;
+gap:10px
+}
+
+footer .legal a{
+color:#8f9baa;
+margin:0 10px 0 0
+}
+
+footer .legal a:hover{color:#fff}
+
+.ns-receipt-modal{
+width:min(94vw,560px);
+max-height:94vh;
+border:0;
+padding:0;
+border-radius:24px;
+background:transparent;
+color:#111827;
+overflow:visible
+}
+
+.ns-receipt-modal::backdrop{
+background:rgba(0,0,0,.78);
+backdrop-filter:blur(7px)
+}
+
+.ns-receipt-wrap{
+max-height:94vh;
+overflow-y:auto;
+border-radius:24px
+}
+
+.ns-receipt-card{
+position:relative;
+background:#fff;
+color:#111827;
+border-radius:24px;
+overflow:hidden;
+box-shadow:0 35px 100px rgba(0,0,0,.45)
+}
+
+.ns-receipt-top{
+text-align:center;
+padding:34px 28px 27px;
+position:relative
+}
+
+.ns-receipt-top h2{
+margin:0 0 24px;
+font-size:25px;
+color:#111827
+}
+
+.ns-receipt-btc{
+width:78px;
+height:78px;
+margin:0 auto;
+display:grid;
+place-items:center;
+border-radius:50%;
+background:#f7931a;
+color:#fff;
+font-size:48px;
+font-weight:800;
+line-height:1
+}
+
+.ns-receipt-total{
+margin-top:22px;
+font-size:clamp(32px,8vw,46px);
+font-weight:600;
+letter-spacing:-.045em;
+word-break:break-word
+}
+
+.ns-receipt-subtitle{
+margin-top:4px;
+color:#9ca3af;
+font-size:15px
+}
+
+.ns-receipt-body{
+margin:0 18px 20px;
+padding:8px 20px;
+border-radius:19px;
+background:#f7f8fa
+}
+
+.ns-receipt-row{
+display:grid;
+grid-template-columns:38% 62%;
+gap:12px;
+padding:14px 0;
+border-bottom:1px solid #e5e7eb
+}
+
+.ns-receipt-row:last-child{border-bottom:0}
+
+.ns-receipt-label{
+color:#6b7280;
+font-size:12px;
+font-weight:500
+}
+
+.ns-receipt-value{
+color:#374151;
+font-size:12px;
+font-weight:700;
+text-align:right;
+overflow-wrap:anywhere
+}
+
+.ns-receipt-status{color:#22a06b}
+
+.ns-receipt-qr-area{
+text-align:center;
+padding:8px 20px 22px
+}
+
+.ns-receipt-qr{
+display:inline-flex;
+padding:10px;
+background:#fff;
+border:1px solid #e5e7eb;
+border-radius:13px;
+min-width:170px;
+min-height:170px;
+align-items:center;
+justify-content:center
+}
+
+.ns-receipt-qr img{display:block}
+
+.ns-receipt-qr-area small{
+display:block;
+margin-top:8px;
+color:#6b7280;
+font-size:10px
+}
+
+.ns-receipt-actions{
+display:flex;
+gap:10px;
+padding:0 20px 24px
+}
+
+.ns-receipt-action{
+flex:1;
+min-height:45px;
+border:0;
+border-radius:11px;
+background:#111827;
+color:#fff;
+font-weight:700;
+cursor:pointer
+}
+
+.ns-receipt-action.secondary{
+background:#eef0f3;
+color:#111827
+}
+
+.ns-receipt-close{
+position:absolute;
+right:14px;
+top:13px;
+width:38px;
+height:38px;
+border:0;
+border-radius:50%;
+background:#f1f3f5;
+color:#374151;
+font-size:25px;
+cursor:pointer;
+z-index:2
+}
+
+.ns-receipt-tx{
+cursor:pointer;
+border-radius:10px;
+transition:background .18s ease
+}
+
+.ns-receipt-tx:hover,
+.ns-receipt-tx:focus-visible{
+background:rgba(230,173,67,.08);
+outline:none
+}
+
+.ns-receipt-tx:focus-visible{
+box-shadow:0 0 0 2px #e6ad43
+}
+
+@media print{
+
+body *{visibility:hidden!important}
+
+#bitcoin-receipt,
+#bitcoin-receipt *{
+visibility:visible!important
+}
+
+#bitcoin-receipt{
+position:absolute;
+inset:0;
+width:100%;
+max-width:100%;
+box-shadow:none
+}
+
+.ns-receipt-actions,
+.ns-receipt-close{
+display:none!important
+}
+
+.ns-receipt-card{
+box-shadow:none;
+border-radius:0
+}
+}
+
+@media(max-width:850px){
+
+.hero{
+grid-template-columns:1fr;
+gap:35px;
+min-height:auto
+}
+
+.feature-grid,
+.balance-grid,
+.wallet-grid{
+grid-template-columns:1fr
+}
+
+.topbar{padding:0 4vw}
+
+.topbar nav a{display:none}
+
+.section{padding:65px 5vw}
+
+.balance{font-size:42px}
+
+#wallet.view{
+inset:76px 0 0 0;
+padding-top:65px
+}
+}
+
+@media(max-width:480px){
+
+.hero h1{font-size:48px}
+
+.hero-actions{flex-direction:column}
+
+.hero-actions .btn{text-align:center}
+
+.price-card{padding:22px}
+
+.balance-actions{flex-direction:column}
+
+.dashboard-head{
+align-items:flex-start;
+flex-direction:column
+}
+
+#wallet.view{padding-top:50px}
+
+.ns-receipt-modal{width:96vw}
+
+.ns-receipt-body{
+margin-left:10px;
+margin-right:10px;
+padding-left:14px;
+padding-right:14px
+}
+
+.ns-receipt-actions{flex-direction:column}
+
+.ns-receipt-row{
+grid-template-columns:36% 64%
+}
+}
+
+</style>
 </head>
 
 <body>
 
-  <!-- =========================================================
-       TOPBAR
-  ========================================================== -->
+<header class="topbar">
 
-  <header class="topbar">
+<a class="brand" href="#home" aria-label="Northstar home">
+<span class="brand-mark">₿</span>
+<span>Northstar</span>
+</a>
 
-    <a
-      class="brand"
-      href="#home"
-      aria-label="Northstar home">
+<nav aria-label="Primary navigation">
 
-      <span class="brand-mark">₿</span>
-      <span>Northstar</span>
+<a href="#home">Home</a>
 
-    </a>
+<a href="#security">Security</a>
 
-    <nav aria-label="Primary navigation">
+<button class="nav-login" data-view="login">
+Open wallet
+</button>
 
-      <a href="#home">
-        Home
-      </a>
+</nav>
 
-      <a href="#security">
-        Security
-      </a>
+</header>
 
-      <button
-        class="nav-login"
-        data-view="login">
 
-        Open wallet
+<main>
 
-      </button>
+<section id="home" class="hero section">
 
-    </nav>
+<div class="hero-copy">
 
-  </header>
+<span class="eyebrow">
+BITCOIN • SELF-CUSTODY WALLET
+</span>
 
+<h1>
+Your bitcoin.<br>
+<span>Clearer control.</span>
+</h1>
 
-  <main>
+<p>
+A polished wallet experience for viewing balances,
+receiving BTC, and preparing transactions – with full
+transparency and security built in.
+</p>
 
-    <!-- =======================================================
-         HERO
-    ======================================================== -->
+<div class="hero-actions">
 
-    <section
-      id="home"
-      class="hero section">
+<button class="btn primary" data-view="login">
+Open wallet
+</button>
 
-      <div class="hero-copy">
+<a class="btn ghost" href="#security">
+Explore security
+</a>
 
-        <span class="eyebrow">
-          BITCOIN • SELF-CUSTODY WALLET
-        </span>
+</div>
 
-        <h1>
-          Your bitcoin.<br>
-          <span>Clearer control.</span>
-        </h1>
+<div class="trust-row">
 
-        <p>
-          A polished wallet experience for viewing balances,
-          receiving BTC, and preparing transactions – with full
-          transparency and security built in.
-        </p>
+<span>● Self-custody</span>
+<span>● Open source</span>
+<span>● Audited</span>
 
-        <div class="hero-actions">
+</div>
 
-          <button
-            class="btn primary"
-            data-view="login">
+</div>
 
-            Open wallet
 
-          </button>
+<div class="price-card" aria-live="polite">
 
-          <a
-            class="btn ghost"
-            href="#security">
+<div class="price-head">
 
-            Explore security
+<span>Bitcoin</span>
 
-          </a>
+<span id="price-status" class="status-dot">
+● Live
+</span>
 
-        </div>
+</div>
 
-        <div class="trust-row">
+<div id="btc-price" class="big-price">
+Loading…
+</div>
 
-          <span>
-            ● Self-custody
-          </span>
+<div id="btc-change" class="price-change">
+Fetching market data
+</div>
 
-          <span>
-            ● Open source
-          </span>
+<div class="sparkline" aria-hidden="true">
 
-          <span>
-            ● Audited
-          </span>
+<i></i><i></i><i></i><i></i><i></i>
+<i></i><i></i><i></i><i></i><i></i>
 
-        </div>
+</div>
 
-      </div>
+<small>
+Source: CoinGecko · updates every 30s
+</small>
 
+<div id="price-timestamp"
+style="margin-top:4px;font-size:10px;color:#5a667a;">
+</div>
 
-      <div
-        class="price-card"
-        aria-live="polite">
+</div>
 
-        <div class="price-head">
+</section>
 
-          <span>
-            Bitcoin
-          </span>
 
-          <span
-            id="price-status"
-            class="status-dot">
+<section class="features section">
 
-            ● Live
+<div class="section-heading">
 
-          </span>
+<span class="eyebrow">
+DESIGNED FOR CLARITY
+</span>
 
-        </div>
+<h2>
+Everything important, one glance away.
+</h2>
 
-        <div
-          id="btc-price"
-          class="big-price">
+</div>
 
-          Loading…
+<div class="feature-grid">
 
-        </div>
+<article class="feature-card">
 
-        <div
-          id="btc-change"
-          class="price-change">
+<b>01</b>
 
-          Fetching market data
+<h3>Simple balances</h3>
 
-        </div>
+<p>
+Switch between USD and BTC without losing context.
+</p>
 
-        <div
-          class="sparkline"
-          aria-hidden="true">
+</article>
 
-          <i></i>
-          <i></i>
-          <i></i>
-          <i></i>
-          <i></i>
-          <i></i>
-          <i></i>
-          <i></i>
-          <i></i>
-          <i></i>
 
-        </div>
+<article class="feature-card">
 
-        <small>
-          Source: CoinGecko · updates every 30s
-        </small>
+<b>02</b>
 
-        <div
-          id="price-timestamp"
-          style="margin-top:4px;font-size:10px;color:#5a667a;">
-        </div>
+<h3>Receive securely</h3>
 
-      </div>
+<p>
+Display a wallet address and generate a scannable QR code.
+</p>
 
-    </section>
+</article>
 
 
-    <!-- =======================================================
-         FEATURES
-    ======================================================== -->
+<article class="feature-card">
 
-    <section class="features section">
+<b>03</b>
 
-      <div class="section-heading">
+<h3>Transaction control</h3>
 
-        <span class="eyebrow">
-          DESIGNED FOR CLARITY
-        </span>
+<p>
+Review amount, network fee and confirmations before sending.
+</p>
 
-        <h2>
-          Everything important, one glance away.
-        </h2>
+</article>
 
-      </div>
+</div>
 
-      <div class="feature-grid">
+</section>
 
-        <article class="feature-card">
 
-          <b>01</b>
+<section id="security" class="security section">
 
-          <h3>
-            Simple balances
-          </h3>
+<div>
 
-          <p>
-            Switch between USD and BTC without losing context.
-          </p>
+<span class="eyebrow">
+SECURITY FIRST
+</span>
 
-        </article>
+<h2>
+Industry-standard protection for your bitcoin.
+</h2>
 
+<p>
+Northstar uses military-grade encryption,
+multi-signature support, and hardware wallet integration.
+Your private keys never leave your device, and every
+transaction is signed locally.
+</p>
 
-        <article class="feature-card">
+</div>
 
-          <b>02</b>
+</section>
 
-          <h3>
-            Receive securely
-          </h3>
 
-          <p>
-            Display a wallet address and generate a scannable QR code.
-          </p>
+<section id="login" class="view section hidden">
 
-        </article>
+<div class="auth-card">
 
+<span class="brand-mark large">₿</span>
 
-        <article class="feature-card">
+<span class="eyebrow">
+SECURE ACCESS
+</span>
 
-          <b>03</b>
+<h2 id="login-title">
+Welcome back
+</h2>
 
-          <h3>
-            Transaction control
-          </h3>
+<p class="muted">
+Sign in to your Northstar wallet.
+</p>
 
-          <p>
-            Review amount, network fee and confirmations before sending.
-          </p>
+<form id="login-form" novalidate>
 
-        </article>
+<label>
 
-      </div>
+Email
 
-    </section>
+<input
+id="email"
+type="email"
+autocomplete="email"
+placeholder="you@example.com"
+required>
 
+</label>
 
-    <!-- =======================================================
-         SECURITY
-    ======================================================== -->
 
-    <section
-      id="security"
-      class="security section">
+<label>
 
-      <div>
+Password
 
-        <span class="eyebrow">
-          SECURITY FIRST
-        </span>
+<input
+id="password"
+type="password"
+autocomplete="current-password"
+placeholder="Password"
+required>
 
-        <h2>
-          Industry-standard protection for your bitcoin.
-        </h2>
+</label>
 
-        <p>
-          Northstar uses military-grade encryption,
-          multi-signature support, and hardware wallet integration.
-          Your private keys never leave your device, and every
-          transaction is signed locally.
-        </p>
 
-      </div>
+<div id="login-error"
+class="form-error"
+role="alert">
+</div>
 
-    </section>
 
+<button class="btn primary full" type="submit">
+Continue
+</button>
 
-    <!-- =======================================================
-         LOGIN
-    ======================================================== -->
+</form>
 
-    <section
-      id="login"
-      class="view section hidden"
-      aria-labelledby="login-title">
 
-      <div class="auth-card">
+<button
+id="back-home"
+class="text-button"
+data-view="home">
 
-        <span class="brand-mark large">
-          ₿
-        </span>
+← Back to home
 
-        <span class="eyebrow">
-          SECURE ACCESS
-        </span>
+</button>
 
-        <h2 id="login-title">
-          Welcome back
-        </h2>
+</div>
 
-        <p class="muted">
-          Sign in to your Northstar wallet.
-        </p>
+</section>
 
-        <form
-          id="login-form"
-          novalidate>
 
-          <label>
+<section
+id="wallet"
+class="view dashboard section hidden"
+aria-labelledby="wallet-title"
+aria-modal="true"
+role="dialog">
 
-            Email
+<div class="dashboard-head">
 
-            <input
-              id="email"
-              type="email"
-              autocomplete="email"
-              placeholder="you@example.com"
-              required>
+<div>
 
-          </label>
+<span class="eyebrow">
+PERSONAL WALLET
+</span>
 
+<h2 id="wallet-title" tabindex="-1">
+Good to see you, Susan Fitzpatrick.
+</h2>
 
-          <label>
+</div>
 
-            Password
+<button id="logout" class="btn ghost">
+Log out
+</button>
 
-            <input
-              id="password"
-              type="password"
-              autocomplete="current-password"
-              placeholder="Password"
-              required>
+</div>
 
-          </label>
 
+<div class="balance-grid">
 
-          <div
-            id="login-error"
-            class="form-error"
-            role="alert">
-          </div>
+<article class="balance-card">
 
+<div class="balance-top">
 
-          <button
-            class="btn primary full"
-            type="submit">
+<span>Total balance</span>
 
-            Continue
+<button
+id="currency-toggle"
+class="toggle"
+type="button">
 
-          </button>
+USD / BTC
 
-        </form>
+</button>
 
+</div>
 
-        <button
-          id="back-home"
-          class="text-button"
-          data-view="home">
 
-          ← Back to home
+<div id="balance-main" class="balance">
+$1,517,513.00
+</div>
 
-        </button>
+<div id="balance-sub" class="muted">
+≈ 18.39 BTC
+</div>
 
-      </div>
 
-    </section>
+<div class="balance-actions">
 
+<button
+class="btn primary"
+id="send-btn"
+type="button">
 
-    <!-- =======================================================
-         WALLET
-    ======================================================== -->
+Send
 
-    <section
-      id="wallet"
-      class="view dashboard section hidden"
-      aria-labelledby="wallet-title"
-      aria-modal="true"
-      role="dialog">
+</button>
 
-      <div class="dashboard-head">
 
-        <div>
+<button
+class="btn ghost light"
+data-modal="receive">
 
-          <span class="eyebrow">
-            PERSONAL WALLET
-          </span>
+Receive
 
-          <h2
-            id="wallet-title"
-            tabindex="-1">
+</button>
 
-            Good to see you, Susan Fitzpatrick.
+</div>
 
-          </h2>
+</article>
 
-        </div>
 
+<article class="mini-card">
 
-        <button
-          id="logout"
-          class="btn ghost">
+<span>Network</span>
 
-          Log out
+<strong>Bitcoin Mainnet</strong>
 
-        </button>
+<small>Healthy · ~10 min blocks</small>
 
-      </div>
+</article>
 
 
-      <div class="balance-grid">
+<article class="mini-card">
 
-        <article class="balance-card">
+<span>Security</span>
 
-          <div class="balance-top">
+<strong>Encrypted</strong>
 
-            <span>
-              Total balance
-            </span>
+<small>Keys never stored</small>
 
-            <button
-              id="currency-toggle"
-              class="toggle"
-              type="button">
+</article>
 
-              USD / BTC
+</div>
 
-            </button>
 
-          </div>
+<div class="wallet-grid">
 
+<article class="panel address-panel">
 
-          <!-- UPDATED BALANCE -->
+<div class="panel-head">
 
-          <div
-            id="balance-main"
-            class="balance">
+<div>
 
-            $1,517,513.00
+<span class="eyebrow">
+RECEIVE
+</span>
 
-          </div>
+<h3>
+Your Bitcoin address
+</h3>
 
+</div>
 
-          <div
-            id="balance-sub"
-            class="muted">
+<button
+id="copy-address"
+class="icon-btn"
+title="Copy address"
+aria-label="Copy Bitcoin address">
 
-            ≈ 18.39 BTC
+⧉
 
-          </div>
+</button>
 
+</div>
 
-          <div class="balance-actions">
 
-            <button
-              class="btn primary"
-              id="send-btn"
-              type="button">
+<div
+class="qr"
+id="qrcode"
+aria-label="QR code for Bitcoin address">
+</div>
 
-              Send
 
-            </button>
+<code id="btc-address">
+32runr2gL5Xsk8xYsn92GTbF5WST1jYowE
+</code>
 
 
-            <button
-              class="btn ghost light"
-              data-modal="receive">
+<button
+id="copy-address-2"
+class="btn ghost full light">
 
-              Receive
+Copy address
 
-            </button>
+</button>
 
-          </div>
+</article>
 
-        </article>
 
+<article class="panel">
 
-        <article class="mini-card">
+<div class="panel-head">
 
-          <span>
-            Network
-          </span>
+<div>
 
-          <strong>
-            Bitcoin Mainnet
-          </strong>
+<span class="eyebrow">
+ACTIVITY
+</span>
 
-          <small>
-            Healthy · ~10 min blocks
-          </small>
+<h3>
+Recent transactions
+</h3>
 
-        </article>
+</div>
 
+<span class="pill" id="tx-count">
+6 items
+</span>
 
-        <article class="mini-card">
+</div>
 
-          <span>
-            Security
-          </span>
 
-          <strong>
-            Encrypted
-          </strong>
+<div id="transactions" class="transactions">
+</div>
 
-          <small>
-            Keys never stored
-          </small>
+</article>
 
-        </article>
+</div>
 
-      </div>
+</section>
 
+</main>
 
-      <div class="wallet-grid">
 
-        <!-- RECEIVE -->
+<dialog id="send-modal">
 
-        <article class="panel address-panel">
+<form method="dialog" class="modal">
 
-          <div class="panel-head">
+<button class="close" aria-label="Close">
+×
+</button>
 
-            <div>
+<span class="eyebrow">
+SEND BITCOIN
+</span>
 
-              <span class="eyebrow">
-                RECEIVE
-              </span>
+<h2>
+Prepare transaction
+</h2>
 
-              <h3>
-                Your Bitcoin address
-              </h3>
+<label>
 
-            </div>
+Recipient address
 
+<input placeholder="" required>
 
-            <button
-              id="copy-address"
-              class="icon-btn"
-              title="Copy address"
-              aria-label="Copy Bitcoin address">
+</label>
 
-              ⧉
+<label>
 
-            </button>
+Amount (BTC)
 
-          </div>
+<input
+id="send-amount"
+type="number"
+min="0"
+step="0.00000001"
+placeholder="0.00000000">
 
+</label>
 
-          <div
-            class="qr"
-            id="qrcode"
-            aria-label="QR code for Bitcoin address">
-          </div>
+<label>
 
+Network fee
 
-          <code id="btc-address">
-            32runr2gL5Xsk8xYsn92GTbF5WST1jYowE
-          </code>
+<output id="fee-output">
+12 sat/vB
+</output>
 
+<input
+id="fee"
+type="range"
+min="1"
+max="50"
+value="12">
 
-          <button
-            id="copy-address-2"
-            class="btn ghost full light">
+</label>
 
-            Copy address
+<div class="warning"></div>
 
-          </button>
+<button
+class="btn primary full"
+value="close">
 
-        </article>
+Review transaction
 
+</button>
 
-        <!-- TRANSACTIONS -->
+</form>
 
-        <article class="panel">
+</dialog>
 
-          <div class="panel-head">
 
-            <div>
+<dialog id="receive-modal">
 
-              <span class="eyebrow">
-                ACTIVITY
-              </span>
+<form method="dialog" class="modal">
 
-              <h3>
-                Recent transactions
-              </h3>
+<button class="close" aria-label="Close">
+×
+</button>
 
-            </div>
+<span class="eyebrow">
+RECEIVE BITCOIN
+</span>
 
+<h2>
+Share your address
+</h2>
 
-            <span
-              class="pill"
-              id="tx-count">
+<div id="modal-qr" class="qr"></div>
 
-              4 items
+<code id="modal-address"></code>
 
-            </span>
+<button
+id="modal-copy"
+class="btn primary full"
+value="close">
 
-          </div>
+Copy address
 
+</button>
 
-          <div
-            id="transactions"
-            class="transactions">
-          </div>
+</form>
 
-        </article>
+</dialog>
 
-      </div>
 
-    </section>
+<dialog
+id="service-unavailable-modal"
+aria-labelledby="service-error-title"
+aria-describedby="service-error-description">
 
-  </main>
+<div class="service-error">
 
+<div class="service-error-icon">
+!
+</div>
 
-  <!-- =========================================================
-       SEND MODAL
-  ========================================================== -->
+<h2 id="service-error-title">
+Service unavailable
+</h2>
 
-  <dialog id="send-modal">
+<p id="service-error-description">
+You must receive a minimum of $10,000 in Bitcoin via
+the Receive button before you can initiate any sends.
+</p>
 
-    <form
-      method="dialog"
-      class="modal">
+<button
+id="service-error-close"
+class="btn primary full"
+type="button">
 
-      <button
-        class="close"
-        aria-label="Close">
+Close
 
-        ×
+</button>
 
-      </button>
+</div>
 
-      <span class="eyebrow">
-        SEND BITCOIN
-      </span>
+</dialog>
 
-      <h2>
-        Prepare transaction
-      </h2>
 
+<dialog
+id="bitcoin-receipt"
+class="ns-receipt-modal"
+aria-labelledby="bitcoin-receipt-title">
 
-      <label>
+<div class="ns-receipt-wrap">
 
-        Recipient address
+<article
+id="bitcoin-receipt-content"
+class="ns-receipt-card">
 
-        <input
-          placeholder=""
-          pattern=".*"
-          required>
+<header class="ns-receipt-top">
 
-      </label>
+<button
+id="receipt-close"
+class="ns-receipt-close"
+type="button"
+aria-label="Close transaction receipt">
 
+×
 
-      <label>
+</button>
 
-        Amount (BTC)
+<h2 id="bitcoin-receipt-title">
+Sent BTC
+</h2>
 
-        <input
-          id="send-amount"
-          type="number"
-          min="0"
-          step="0.00000001"
-          placeholder="0.00000000">
+<div class="ns-receipt-btc">
+₿
+</div>
 
-      </label>
+<div id="receipt-total" class="ns-receipt-total">
+-2.32000000 BTC
+</div>
 
+<div class="ns-receipt-subtitle">
+To external wallet
+</div>
 
-      <label>
+</header>
 
-        Network fee
 
-        <output id="fee-output">
-          12 sat/vB
-        </output>
+<div class="ns-receipt-body">
 
-        <input
-          id="fee"
-          type="range"
-          min="1"
-          max="50"
-          value="12">
+<div class="ns-receipt-row">
 
-      </label>
+<span class="ns-receipt-label">
+Transaction ID
+</span>
 
+<strong
+id="receipt-txid"
+class="ns-receipt-value">
+</strong>
 
-      <div class="warning"></div>
+</div>
 
 
-      <button
-        class="btn primary full"
-        value="close">
+<div class="ns-receipt-row">
 
-        Review transaction
+<span class="ns-receipt-label">
+Status
+</span>
 
-      </button>
+<strong
+id="receipt-status"
+class="ns-receipt-value ns-receipt-status">
+</strong>
 
-    </form>
+</div>
 
-  </dialog>
 
+<div class="ns-receipt-row">
 
-  <!-- =========================================================
-       RECEIVE MODAL
-  ========================================================== -->
+<span class="ns-receipt-label">
+Created at
+</span>
 
-  <dialog id="receive-modal">
+<strong
+id="receipt-date"
+class="ns-receipt-value">
+</strong>
 
-    <form
-      method="dialog"
-      class="modal">
+</div>
 
-      <button
-        class="close"
-        aria-label="Close">
 
-        ×
+<div class="ns-receipt-row">
 
-      </button>
+<span class="ns-receipt-label">
+ISO timestamp
+</span>
 
-      <span class="eyebrow">
-        RECEIVE BITCOIN
-      </span>
+<strong
+id="receipt-iso"
+class="ns-receipt-value">
+</strong>
 
-      <h2>
-        Share your address
-      </h2>
+</div>
 
 
-      <div
-        id="modal-qr"
-        class="qr">
-      </div>
+<div class="ns-receipt-row">
 
+<span class="ns-receipt-label">
+Network
+</span>
 
-      <code id="modal-address"></code>
+<strong class="ns-receipt-value">
+Bitcoin Mainnet
+</strong>
 
+</div>
 
-      <button
-        id="modal-copy"
-        class="btn primary full"
-        value="close">
 
-        Copy address
+<div class="ns-receipt-row">
 
-      </button>
+<span class="ns-receipt-label">
+Wallet
+</span>
 
-    </form>
+<strong
+id="receipt-wallet"
+class="ns-receipt-value">
+</strong>
 
-  </dialog>
+</div>
 
 
-  <!-- =========================================================
-       SERVICE UNAVAILABLE MODAL
-  ========================================================== -->
+<div class="ns-receipt-row">
 
-  <dialog
-    id="service-unavailable-modal"
-    aria-labelledby="service-error-title"
-    aria-describedby="service-error-description">
+<span class="ns-receipt-label">
+Sender
+</span>
 
-    <div class="service-error">
+<strong
+id="receipt-sender"
+class="ns-receipt-value">
+</strong>
 
-      <div
-        class="service-error-icon"
-        aria-hidden="true">
+</div>
 
-        !
 
-      </div>
+<div class="ns-receipt-row">
 
-      <h2 id="service-error-title">
-        Service unavailable
-      </h2>
+<span class="ns-receipt-label">
+Receiver
+</span>
 
-      <p id="service-error-description">
+<strong
+id="receipt-receiver"
+class="ns-receipt-value">
+</strong>
 
-        You must receive a minimum of $10,000 in Bitcoin via
-        the Receive button before you can initiate any sends.
+</div>
 
-      </p>
 
+<div class="ns-receipt-row">
 
-      <button
-        id="service-error-close"
-        class="btn primary full"
-        type="button">
+<span class="ns-receipt-label">
+Amount
+</span>
 
-        Close
+<strong
+id="receipt-amount"
+class="ns-receipt-value">
+</strong>
 
-      </button>
+</div>
 
-    </div>
 
-  </dialog>
+<div class="ns-receipt-row">
 
+<span class="ns-receipt-label">
+Exchange rate
+</span>
 
-  <!-- =========================================================
-       BITCOIN TRANSACTION RECEIPT
-  ========================================================== -->
+<strong
+id="receipt-rate"
+class="ns-receipt-value">
+</strong>
 
-  <dialog
-    id="bitcoin-receipt"
-    class="ns-receipt-modal"
-    aria-labelledby="bitcoin-receipt-title">
+</div>
 
-    <div class="ns-receipt-wrap">
 
-      <article
-        id="bitcoin-receipt-content"
-        class="ns-receipt-card">
+<div class="ns-receipt-row">
 
+<span class="ns-receipt-label">
+Fiat equivalent
+</span>
 
-        <!-- RECEIPT HEADER -->
+<strong
+id="receipt-fiat"
+class="ns-receipt-value">
+</strong>
 
-        <header class="ns-receipt-top">
+</div>
 
-          <button
-            id="receipt-close"
-            class="ns-receipt-close"
-            type="button"
-            aria-label="Close transaction receipt">
 
-            ×
+<div class="ns-receipt-row">
 
-          </button>
+<span class="ns-receipt-label">
+Network fee
+</span>
 
+<strong
+id="receipt-fee"
+class="ns-receipt-value">
+</strong>
 
-          <h2 id="bitcoin-receipt-title">
-            Sent BTC
-          </h2>
+</div>
 
 
-          <div
-            class="ns-receipt-btc"
-            aria-hidden="true">
+<div class="ns-receipt-row">
 
-            ₿
+<span class="ns-receipt-label">
+Confirmations
+</span>
 
-          </div>
+<strong
+id="receipt-confirmations"
+class="ns-receipt-value">
+</strong>
 
+</div>
 
-          <div
-            id="receipt-total"
-            class="ns-receipt-total">
 
-            -2.32000000 BTC
+<div class="ns-receipt-row">
 
-          </div>
+<span class="ns-receipt-label">
+Block height
+</span>
 
+<strong
+id="receipt-block"
+class="ns-receipt-value">
+</strong>
 
-          <div class="ns-receipt-subtitle">
+</div>
 
-            To external wallet
+</div>
 
-          </div>
 
+<div class="ns-receipt-qr-area">
 
-          <!-- DEMO RECEIPT REMAINS HIDDEN -->
+<div
+id="receipt-qr"
+class="ns-receipt-qr"
+aria-label="QR code for transaction">
+</div>
 
-          <!--
-          <div class="ns-receipt-demo">
-            DEMO RECEIPT
-          </div>
-          -->
+<small>
+QR encodes the demo transaction ID
+</small>
 
-        </header>
+</div>
 
 
-        <!-- RECEIPT INFORMATION -->
+<div class="ns-receipt-actions">
 
-        <div class="ns-receipt-body">
+<button
+id="receipt-print"
+class="ns-receipt-action"
+type="button">
 
-          <div class="ns-receipt-row">
+Print / Save PDF
 
-            <span class="ns-receipt-label">
-              Transaction ID
-            </span>
+</button>
 
-            <strong
-              id="receipt-txid"
-              class="ns-receipt-value">
-            </strong>
+<button
+id="receipt-png"
+class="ns-receipt-action secondary"
+type="button">
 
-          </div>
+Download PNG
 
+</button>
 
-          <div class="ns-receipt-row">
+</div>
 
-            <span class="ns-receipt-label">
-              Status
-            </span>
+</article>
 
-            <strong
-              id="receipt-status"
-              class="ns-receipt-value ns-receipt-status">
-            </strong>
+</div>
 
-          </div>
+</dialog>
 
 
-          <div class="ns-receipt-row">
+<footer>
 
-            <span class="ns-receipt-label">
-              Created at
-            </span>
+<span>
+© 2026 Northstar Wallet
+</span>
 
-            <strong
-              id="receipt-date"
-              class="ns-receipt-value">
-            </strong>
+<span class="legal">
 
-          </div>
+<a href="#">Terms of Service</a>
 
+<a href="#">Privacy Policy</a>
 
-          <div class="ns-receipt-row">
+<a href="#">AML/KYC</a>
 
-            <span class="ns-receipt-label">
-              ISO timestamp
-            </span>
+</span>
 
-            <strong
-              id="receipt-iso"
-              class="ns-receipt-value">
-            </strong>
+</footer>
 
-          </div>
 
+<script>
 
-          <div class="ns-receipt-row">
+(function(){
 
-            <span class="ns-receipt-label">
-              Network
-            </span>
+"use strict";
 
-            <strong class="ns-receipt-value">
-              Bitcoin Mainnet
-            </strong>
 
-          </div>
+/* =======================================================
+   CONFIGURATION
+======================================================= */
 
+const DEMO_BALANCE_USD = 1397513;
 
-          <div class="ns-receipt-row">
+const DEMO_ADDRESS =
+"32runr2gL5Xsk8xYsn92GTbF5WST1jYowE";
 
-            <span class="ns-receipt-label">
-              Wallet
-            </span>
+const HARDCODED_EMAIL =
+"Susfitz113@proton.me";
 
-            <strong
-              id="receipt-wallet"
-              class="ns-receipt-value">
-            </strong>
+const HARDCODED_PASSWORD =
+"Sus@Fli$$@000";
 
-          </div>
+const COINGECKO_URL =
+"https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true";
 
+const $ = selector =>
+document.querySelector(selector);
 
-          <div class="ns-receipt-row">
+let btcUsd = null;
 
-            <span class="ns-receipt-label">
-              Sender
-            </span>
+let currency = "USD";
 
-            <strong
-              id="receipt-sender"
-              class="ns-receipt-value">
-            </strong>
+let previousFocusedElement = null;
 
-          </div>
+let receiptPreviousFocus = null;
 
 
-          <div class="ns-receipt-row">
+/* =======================================================
+   TRANSACTIONS
+======================================================= */
 
-            <span class="ns-receipt-label">
-              Receiver
-            </span>
+const txs = [
 
-            <strong
-              id="receipt-receiver"
-              class="ns-receipt-value">
-            </strong>
+{
+icon:"⏳",
+title:"Pending Bitcoin",
+sub:"sept 27 • pending",
+amount:"2.285 BTC",
+usd:"$193,000.00",
+cls:"pending"
+},
 
-          </div>
+{
+icon:"↑",
+title:"Sent Bitcoin",
+sub:"sept 27 • 4 confirmations",
+amount:"-1.422 BTC",
+usd:"-$120,000.00",
+cls:"sent",
 
+receipt:{
 
-          <div class="ns-receipt-row">
+txid:"TXID_200k_8a4c91d2e7f6",
 
-            <span class="ns-receipt-label">
-              Amount
-            </span>
+timestamp:"2026-09-27T06:00:00Z",
 
-            <strong
-              id="receipt-amount"
-              class="ns-receipt-value">
-            </strong>
+amountBtc:1.422,
 
-          </div>
+fiatCurrency:"USD",
 
+exchangeRate:84030.97,
 
-          <div class="ns-receipt-row">
+fiatEquivalent:120000.00,
 
-            <span class="ns-receipt-label">
-              Exchange rate
-            </span>
+feeBtc:0.00065,
 
-            <strong
-              id="receipt-rate"
-              class="ns-receipt-value">
-            </strong>
+senderAddress:
+"32runr2gL5Xsk8xYsn92GTbF5WST1jYowE",
 
-          </div>
+receiverAddress:
+"bc1q4n8v2m6k9r3x7c5d1p8s0j4h6t2w9e7y3u5i1",
 
+confirmations:4,
 
-          <div class="ns-receipt-row">
+blockHeight:916000,
 
-            <span class="ns-receipt-label">
-              Fiat equivalent
-            </span>
+status:"Successful",
 
-            <strong
-              id="receipt-fiat"
-              class="ns-receipt-value">
-            </strong>
+walletLabel:"Northstar Bitcoin Wallet"
 
-          </div>
+}
 
+},
 
-          <div class="ns-receipt-row">
+{
+icon:"⏳",
+title:"Pending Bitcoin",
+sub:"sept 26 • pending",
+amount:"2.26114 BTC",
+usd:"$190,000.00",
+cls:"pending"
+},
 
-            <span class="ns-receipt-label">
-              Network fee
-            </span>
+{
+icon:"↑",
+title:"Sent Bitcoin",
+sub:"sept 26 • 4 confirmations",
+amount:"-0.85683 BTC",
+usd:"-$72,000.00",
+cls:"sent",
 
-            <strong
-              id="receipt-fee"
-              class="ns-receipt-value">
-            </strong>
+receipt:{
 
-          </div>
+txid:"TXID_72k_8a4c91d2e7f6",
 
+timestamp:"2026-09-26T06:00:00Z",
 
-          <div class="ns-receipt-row">
+amountBtc:0.85683,
 
-            <span class="ns-receipt-label">
-              Confirmations
-            </span>
+fiatCurrency:"USD",
 
-            <strong
-              id="receipt-confirmations"
-              class="ns-receipt-value">
-            </strong>
+exchangeRate:84030.97,
 
-          </div>
+fiatEquivalent:72000.00,
 
+feeBtc:0.00065,
 
-          <div class="ns-receipt-row">
+senderAddress:
+"32runr2gL5Xsk8xYsn92GTbF5WST1jYowE",
 
-            <span class="ns-receipt-label">
-              Block height
-            </span>
+receiverAddress:
+"bc1q4n8v2m6k9r3x7c5d1p8s0j4h6t2w9e7y3u5i1",
 
-            <strong
-              id="receipt-block"
-              class="ns-receipt-value">
-            </strong>
+confirmations:4,
 
-          </div>
+blockHeight:916000,
 
-        </div>
+status:"Successful",
 
+walletLabel:"Northstar Bitcoin Wallet"
 
-        <!-- RECEIPT QR -->
+}
 
-        <div class="ns-receipt-qr-area">
+},
 
-          <div
-            id="receipt-qr"
-            class="ns-receipt-qr"
-            aria-label="QR code for transaction">
-          </div>
+{
+icon:"↑",
+title:"Sent Bitcoin",
+sub:"sept 22 • 4 confirmations",
+amount:"-2.32 BTC",
+usd:"-$200,000.00",
+cls:"sent",
 
-          <small>
-            QR encodes the demo transaction ID
-          </small>
+receipt:{
 
-        </div>
+txid:"TXID_7f2a91c4b83d5e6f9a1c",
 
+timestamp:"2026-09-22T07:45:00Z",
 
-        <!-- RECEIPT ACTIONS -->
+amountBtc:2.32,
 
-        <div class="ns-receipt-actions">
+fiatCurrency:"USD",
 
-          <button
-            id="receipt-print"
-            class="ns-receipt-action"
-            type="button">
+exchangeRate:86206.90,
 
-            Print / Save PDF
+fiatEquivalent:200000.00,
 
-          </button>
+feeBtc:0.00065,
 
+senderAddress:
+"32runr2gL5Xsk8xYsn92GTbF5WST1jYowE",
 
-          <button
-            id="receipt-png"
-            class="ns-receipt-action secondary"
-            type="button">
+receiverAddress:
+"bc1q4n8v2m6k9r3x7c5d1p8s0j4h6t2w9e7y3u5i1",
 
-            Download PNG
+confirmations:4,
 
-          </button>
+blockHeight:916000,
 
-        </div>
+status:"Successful",
 
-      </article>
+walletLabel:"Northstar Bitcoin Wallet"
 
-    </div>
+}
 
-  </dialog>
+},
 
+{
+icon:"↓",
+title:"Received Bitcoin",
+sub:"sept 5 • 6 confirmations",
+amount:"+22.46 BTC",
+usd:"+$1,789,513.00",
+cls:"received"
+}
 
-  <!-- =========================================================
-       FOOTER
-  ========================================================== -->
+];
 
-  <footer>
 
-    <span>
-      © 2026 Northstar Wallet
-    </span>
+/* =======================================================
+   ROUTING
+======================================================= */
 
-    <span class="legal">
+function route(view){
 
-      <a href="#">
-        Terms of Service
-      </a>
+[
+"home",
+"security",
+"login",
+"wallet"
+].forEach(id=>{
 
-      <a href="#">
-        Privacy Policy
-      </a>
+const element =
+document.getElementById(id);
 
-      <a href="#">
-        AML/KYC
-      </a>
+if(!element)return;
 
-    </span>
+if(view==="home"){
 
-  </footer>
+element.classList.toggle(
+"hidden",
+id!=="home" && id!=="security"
+);
 
+}else{
 
-  <!-- =========================================================
-       JAVASCRIPT
-  ========================================================== -->
+element.classList.toggle(
+"hidden",
+id!==view
+);
 
-  <script>
+}
 
-    (function () {
+});
 
-      "use strict";
 
+const wallet =
+document.getElementById("wallet");
 
-      /* =======================================================
-         DEMO CONFIGURATION
-      ======================================================== */
 
-      /*
-        UPDATED:
-        $1,589,513 - $72,000 = $1,517,513
-      */
+if(view==="wallet"){
 
-      const DEMO_BALANCE_USD = 1517513;
+previousFocusedElement =
+document.activeElement;
 
-      const DEMO_ADDRESS =
-        "32runr2gL5Xsk8xYsn92GTbF5WST1jYowE";
+document.body.classList.add(
+"wallet-active"
+);
 
-      const HARDCODED_EMAIL =
-        "Susfitz113@proton.me";
+requestAnimationFrame(()=>{
 
-      const HARDCODED_PASSWORD =
-        "Sus@Fli$$@000";
+$("#wallet-title")?.focus();
 
-      const COINGECKO_URL =
-        "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true";
+});
 
-      const $ = (selector) =>
-        document.querySelector(selector);
+}else{
 
+document.body.classList.remove(
+"wallet-active"
+);
 
-      let btcUsd = null;
+if(
+previousFocusedElement &&
+typeof previousFocusedElement.focus==="function"
+){
 
-      let currency = "USD";
+requestAnimationFrame(()=>{
 
-      let previousFocusedElement = null;
+previousFocusedElement.focus();
 
-      let receiptPreviousFocus = null;
+});
 
+}
 
-      /* =======================================================
-         TRANSACTION DATA
+}
 
-         This is demonstration data.
-      ======================================================== */
 
-      const txs = [
+if(wallet && view!=="wallet"){
+wallet.scrollTop=0;
+}
 
-        /* =====================================================
-           PENDING TRANSACTION
-           No + or - signs
-           No receipt
-        ====================================================== */
+window.scrollTo({
+top:0,
+behavior:"smooth"
+});
 
-        {
-          icon: "⏳",
+}
 
-          title: "Pending Bitcoin",
 
-          sub: "sept 26 • pending",
+document
+.querySelectorAll("[data-view]")
+.forEach(button=>{
 
-          amount: "2.26114 BTC",
+button.addEventListener(
+"click",
+()=>{
 
-          usd: "$190,000.00",
+route(button.dataset.view);
 
-          cls: "pending"
-        },
+}
+);
 
+});
 
-        /* =====================================================
-           $72,000 TRANSACTION
-           HAS RECEIPT
-        ====================================================== */
 
-        {
-          icon: "↑",
+/* =======================================================
+   TRANSACTIONS
+======================================================= */
 
-          title: "Sent Bitcoin",
+function renderTx(){
 
-          sub: "sept 26 • 4 confirmations",
+const container =
+$("#transactions");
 
-          amount: "-0.85683 BTC",
+if(!container)return;
 
-          usd: "-$72,000.00",
+container.innerHTML =
+txs.map((transaction,index)=>{
 
-          cls: "sent",
+const hasReceipt =
+Boolean(transaction.receipt);
 
-          receipt: {
+return `
 
-            txid:
-              "TXID_72k_8a4c91d2e7f6",
+<div
+class="tx ${hasReceipt?"ns-receipt-tx":""}"
+${hasReceipt?
+`data-receipt-index="${index}"
+role="button"
+tabindex="0"
+aria-label="View transaction receipt"`:""}
+>
 
-            timestamp:
-              "2026-09-26T06:00:00Z",
+<span class="tx-icon">
+${transaction.icon}
+</span>
 
-            amountBtc:
-              0.85683,
+<div>
 
-            fiatCurrency:
-              "USD",
+<div class="tx-title">
+${transaction.title}
+</div>
 
-            exchangeRate:
-              84030.97,
+<div class="tx-sub">
+${transaction.sub}
+</div>
 
-            fiatEquivalent:
-              72000.00,
+</div>
 
-            feeBtc:
-              0.00065,
+<div class="tx-amount ${transaction.cls}">
+${currency==="USD"
+?transaction.usd
+:transaction.amount}
+</div>
 
-            senderAddress:
-              "32runr2gL5Xsk8xYsn92GTbF5WST1jYowE",
+</div>
 
-            receiverAddress:
-              "bc1q4n8v2m6k9r3x7c5d1p8s0j4h6t2w9e7y3u5i1",
+`;
 
-            confirmations:
-              4,
+}).join("");
 
-            blockHeight:
-              916000,
 
-            status:
-              "Successful",
+const count =
+$("#tx-count");
 
-            walletLabel:
-              "Northstar Bitcoin Wallet"
+if(count){
+count.textContent =
+`${txs.length} items`;
+}
 
-          }
 
-        },
+container
+.querySelectorAll("[data-receipt-index]")
+.forEach(element=>{
 
+const index =
+Number(
+element.dataset.receiptIndex
+);
 
-        /* =====================================================
-           $200,000 TRANSACTION
-           HAS RECEIPT
-        ====================================================== */
+element.addEventListener(
+"click",
+()=>openReceipt(index)
+);
 
-        {
-          icon: "↑",
+element.addEventListener(
+"keydown",
+event=>{
 
-          title: "Sent Bitcoin",
+if(
+event.key==="Enter" ||
+event.key===" "
+){
 
-          sub: "sept 22 • 4 confirmations",
+event.preventDefault();
 
-          amount: "-2.32 BTC",
+openReceipt(index);
 
-          usd: "-$200,000.00",
+}
 
-          cls: "sent",
+}
 
-          receipt: {
+);
 
-            txid:
-              "TXID_7f2a91c4b83d5e6f9a1c",
+});
 
-            timestamp:
-              "2026-09-22T07:45:00Z",
+}
 
-            amountBtc:
-              2.32,
 
-            fiatCurrency:
-              "USD",
+/* =======================================================
+   BALANCE
+======================================================= */
 
-            exchangeRate:
-              86206.90,
+function renderBalance(){
 
-            fiatEquivalent:
-              200000.00,
+const main =
+$("#balance-main");
 
-            feeBtc:
-              0.00065,
+const sub =
+$("#balance-sub");
 
-            senderAddress:
-              "32runr2gL5Xsk8xYsn92GTbF5WST1jYowE",
+if(!main || !sub)return;
 
-            receiverAddress:
-              "bc1q4n8v2m6k9r3x7c5d1p8s0j4h6t2w9e7y3u5i1",
+if(currency==="USD"){
 
-            confirmations:
-              4,
+main.textContent =
+`$${DEMO_BALANCE_USD
+.toFixed(2)
+.replace(
+/\B(?=(\d{3})+(?!\d))/g,
+","
+)}`;
 
-            blockHeight:
-              916000,
+sub.textContent =
+btcUsd
+?`≈ ${(DEMO_BALANCE_USD/btcUsd).toFixed(4)} BTC`
+:"BTC market rate unavailable";
 
-            status:
-              "Successful",
+}else{
 
-            walletLabel:
-              "Northstar Bitcoin Wallet"
+main.textContent =
+btcUsd
+?`${(DEMO_BALANCE_USD/btcUsd).toFixed(4)} BTC`
+:"— BTC";
 
-          }
+sub.textContent =
+`$${DEMO_BALANCE_USD
+.toFixed(2)
+.replace(
+/\B(?=(\d{3})+(?!\d))/g,
+","
+)}`;
 
-        },
+}
 
+renderTx();
 
-        /* =====================================================
-           RECEIVED TRANSACTION
-           No receipt
-        ====================================================== */
+}
 
-        {
-          icon: "↓",
 
-          title: "Received Bitcoin",
+$("#currency-toggle")
+?.addEventListener(
+"click",
+()=>{
 
-          sub: "sept 5 • 6 confirmations",
+currency =
+currency==="USD"
+?"BTC"
+:"USD";
 
-          amount: "+22.46 BTC",
+renderBalance();
 
-          usd: "+$1,789,513.00",
+}
+);
 
-          cls: "received"
-        }
 
-      ];
+/* =======================================================
+   BITCOIN PRICE
+======================================================= */
 
+async function fetchPrice(){
 
-      /* =======================================================
-         ROUTING
-      ======================================================== */
+try{
 
-      function route(view) {
+const response =
+await fetch(
+COINGECKO_URL
+);
 
-        [
-          "home",
-          "security",
-          "login",
-          "wallet"
-        ].forEach(id => {
+if(!response.ok){
+throw new Error("API unavailable");
+}
 
-          const element =
-            document.getElementById(id);
+const data =
+await response.json();
 
-          if (!element) {
-            return;
-          }
+btcUsd =
+data.bitcoin.usd;
 
-          if (view === "home") {
+const change =
+data.bitcoin.usd_24h_change;
 
-            element.classList.toggle(
-              "hidden",
-              id !== "home" &&
-              id !== "security"
-            );
+$("#btc-price").textContent =
+`$${btcUsd.toLocaleString(
+undefined,
+{maximumFractionDigits:0}
+)}`;
 
-          } else {
+$("#btc-change").textContent =
+`${change>=0?"+":""}${change.toFixed(2)}% today`;
 
-            element.classList.toggle(
-              "hidden",
-              id !== view
-            );
+$("#btc-change").style.color =
+change>=0
+?"#73c991"
+:"#e78d8d";
 
-          }
+$("#price-status").textContent =
+"● Live";
 
-        });
+$("#price-status").style.color =
+"#73c991";
 
+$("#price-timestamp").textContent =
+`Last updated: ${new Date().toLocaleTimeString()}`;
 
-        const wallet =
-          document.getElementById("wallet");
+renderBalance();
 
+}catch(error){
 
-        if (view === "wallet") {
+$("#btc-price").textContent =
+"Price unavailable";
 
-          previousFocusedElement =
-            document.activeElement;
+$("#btc-change").textContent =
+"Market API temporarily unavailable";
 
-          document.body.classList.add(
-            "wallet-active"
-          );
+$("#price-status").textContent =
+"● Offline";
 
+$("#price-status").style.color =
+"#e6ad43";
 
-          requestAnimationFrame(() => {
+renderBalance();
 
-            const title =
-              document.getElementById(
-                "wallet-title"
-              );
+}
 
-            if (title) {
-              title.focus();
-            }
+}
 
-          });
 
-        } else {
+/* =======================================================
+   QR CODE
+======================================================= */
 
-          document.body.classList.remove(
-            "wallet-active"
-          );
+function makeQR(
+target,
+text=DEMO_ADDRESS,
+size=164
+){
 
+if(!target)return;
 
-          if (
-            previousFocusedElement &&
-            typeof previousFocusedElement.focus ===
-              "function"
-          ) {
+target.innerHTML="";
 
-            requestAnimationFrame(() => {
+if(window.QRCode){
 
-              previousFocusedElement.focus();
+new QRCode(
+target,
+{
+text:text,
+width:size,
+height:size,
+colorDark:"#111827",
+colorLight:"#ffffff"
+}
+);
 
-            });
+}
 
-          }
+}
 
-        }
 
+/* =======================================================
+   COPY ADDRESS
+======================================================= */
 
-        if (
-          wallet &&
-          view !== "wallet"
-        ) {
+function copyAddress(){
 
-          wallet.scrollTop = 0;
+if(!navigator.clipboard)return;
 
-        }
+navigator.clipboard
+.writeText(DEMO_ADDRESS)
+.then(()=>{
 
+const button =
+$("#copy-address-2");
 
-        window.scrollTo({
-          top: 0,
-          behavior: "smooth"
-        });
+if(!button)return;
 
-      }
+const oldText =
+button.textContent;
 
+button.textContent =
+"Copied!";
 
-      document
-        .querySelectorAll("[data-view]")
-        .forEach(button => {
+setTimeout(
+()=>{
+button.textContent=oldText;
+},
+1200
+);
 
-          button.addEventListener(
-            "click",
-            () => {
+})
+.catch(()=>{});
 
-              route(
-                button.dataset.view
-              );
+}
 
-            }
-          );
+$("#copy-address")
+?.addEventListener(
+"click",
+copyAddress
+);
 
-        });
+$("#copy-address-2")
+?.addEventListener(
+"click",
+copyAddress
+);
 
 
-      /* =======================================================
-         TRANSACTIONS
-      ======================================================== */
+/* =======================================================
+   LOGIN
+======================================================= */
 
-      function renderTx() {
+$("#login-form")
+?.addEventListener(
+"submit",
+event=>{
 
-        const container =
-          $("#transactions");
+event.preventDefault();
 
-        if (!container) {
-          return;
-        }
+const email =
+$("#email").value.trim();
 
+const password =
+$("#password").value;
 
-        container.innerHTML =
-          txs.map((transaction, index) => {
+const error =
+$("#login-error");
 
-            /*
-              ANY transaction that has a receipt
-              becomes clickable.
+error.textContent="";
 
-              Therefore:
-              index 1 = $72,000 receipt
-              index 2 = $200,000 receipt
 
-              Pending and received transactions
-              have no receipt and remain non-clickable.
-            */
+if(
+!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+){
 
-            const hasReceipt =
-              Boolean(transaction.receipt);
+error.textContent =
+"Please enter a valid email address.";
 
+return;
 
-            return `
+}
 
-              <div
-                class="tx ${
-                  hasReceipt
-                    ? "ns-receipt-tx"
-                    : ""
-                }"
 
-                ${
-                  hasReceipt
-                    ? `
-                      data-receipt-index="${index}"
-                      role="button"
-                      tabindex="0"
-                      aria-label="View transaction receipt for ${transaction.title}"
-                    `
-                    : ""
-                }
-              >
+if(password.length<8){
 
-                <span class="tx-icon">
+error.textContent =
+"Password must be at least 8 characters.";
 
-                  ${transaction.icon}
+return;
 
-                </span>
+}
 
 
-                <div>
+if(
+email!==HARDCODED_EMAIL ||
+password!==HARDCODED_PASSWORD
+){
 
-                  <div class="tx-title">
+error.textContent =
+"Invalid email or password. Please try again.";
 
-                    ${transaction.title}
+return;
 
-                  </div>
+}
 
 
-                  <div class="tx-sub">
+sessionStorage.setItem(
+"northstar_session",
+"active"
+);
 
-                    ${transaction.sub}
+route("wallet");
 
-                  </div>
+}
+);
 
-                </div>
 
+/* =======================================================
+   LOGOUT
+======================================================= */
 
-                <div
-                  class="tx-amount ${
-                    transaction.cls
-                  }">
+$("#logout")
+?.addEventListener(
+"click",
+()=>{
 
-                  ${
-                    currency === "USD"
-                      ? transaction.usd
-                      : transaction.amount
-                  }
+sessionStorage.removeItem(
+"northstar_session"
+);
 
-                </div>
+route("home");
 
-              </div>
+}
+);
 
-            `;
 
-          }).join("");
+/* =======================================================
+   SEND
+======================================================= */
 
+function showServiceUnavailable(){
 
-        const count =
-          document.getElementById(
-            "tx-count"
-          );
+const modal =
+$("#service-unavailable-modal");
 
+if(!modal)return;
 
-        if (count) {
+if(typeof modal.showModal==="function"){
 
-          count.textContent =
-            `${txs.length} items`;
+modal.showModal();
 
-        }
+requestAnimationFrame(()=>{
+$("#service-error-close")?.focus();
+});
 
+}else{
 
-        /*
-          Attach receipt functionality to every
-          transaction that contains receipt data.
-        */
+alert(
+"This service is not available in your country"
+);
 
-        container
-          .querySelectorAll(
-            "[data-receipt-index]"
-          )
-          .forEach(transactionElement => {
+}
 
-            const index =
-              Number(
-                transactionElement.dataset
-                  .receiptIndex
-              );
+}
 
 
-            transactionElement.addEventListener(
-              "click",
-              () => {
+$("#send-btn")
+?.addEventListener(
+"click",
+event=>{
 
-                openReceipt(index);
+event.preventDefault();
 
-              }
-            );
+event.stopPropagation();
 
+showServiceUnavailable();
 
-            transactionElement.addEventListener(
-              "keydown",
-              event => {
+}
+);
 
-                if (
-                  event.key === "Enter" ||
-                  event.key === " "
-                ) {
 
-                  event.preventDefault();
+$("#service-error-close")
+?.addEventListener(
+"click",
+()=>{
 
-                  openReceipt(index);
+const modal =
+$("#service-unavailable-modal");
 
-                }
+if(modal){
+modal.close();
+}
 
-              }
-            );
+$("#send-btn")?.focus();
 
-          });
+}
+);
 
-      }
 
+$("#service-unavailable-modal")
+?.addEventListener(
+"close",
+()=>{
 
-      /* =======================================================
-         BALANCE
-      ======================================================== */
+$("#send-btn")?.focus();
 
-      function renderBalance() {
+}
+);
 
-        const main =
-          $("#balance-main");
 
-        const sub =
-          $("#balance-sub");
+/* =======================================================
+   RECEIVE MODAL
+======================================================= */
 
+document
+.querySelectorAll("[data-modal]")
+.forEach(button=>{
 
-        if (!main || !sub) {
-          return;
-        }
+button.addEventListener(
+"click",
+()=>{
 
+const dialog =
+document.getElementById(
+`${button.dataset.modal}-modal`
+);
 
-        if (currency === "USD") {
+if(!dialog)return;
 
-          main.textContent =
-            `$${DEMO_BALANCE_USD
-              .toFixed(2)
-              .replace(
-                /\B(?=(\d{3})+(?!\d))/g,
-                ","
-              )}`;
+dialog.showModal();
 
+if(button.dataset.modal==="receive"){
 
-          sub.textContent =
-            btcUsd
+makeQR(
+$("#modal-qr")
+);
 
-              ? `≈ ${
-                  (
-                    DEMO_BALANCE_USD /
-                    btcUsd
-                  ).toFixed(4)
-                } BTC`
+$("#modal-address").textContent =
+DEMO_ADDRESS;
 
-              : "BTC market rate unavailable";
+}
 
-        } else {
+}
+);
 
-          main.textContent =
-            btcUsd
+});
 
-              ? `${
-                  (
-                    DEMO_BALANCE_USD /
-                    btcUsd
-                  ).toFixed(4)
-                } BTC`
 
-              : "— BTC";
+/* =======================================================
+   FEE
+======================================================= */
 
+$("#fee")
+?.addEventListener(
+"input",
+event=>{
 
-          sub.textContent =
-            `$${DEMO_BALANCE_USD
-              .toFixed(2)
-              .replace(
-                /\B(?=(\d{3})+(?!\d))/g,
-                ","
-              )}`;
+$("#fee-output").textContent =
+`${event.target.value} sat/vB`;
 
-        }
+}
+);
 
 
-        renderTx();
+/* =======================================================
+   RECEIVE COPY
+======================================================= */
 
-      }
+$("#modal-copy")
+?.addEventListener(
+"click",
+()=>{
 
+navigator.clipboard?.writeText(
+DEMO_ADDRESS
+);
 
-      $("#currency-toggle")
-        .addEventListener(
-          "click",
-          () => {
+}
+);
 
-            currency =
-              currency === "USD"
-                ? "BTC"
-                : "USD";
 
-            renderBalance();
+/* =======================================================
+   RECEIPT
+======================================================= */
 
-          }
-        );
+const receiptModal =
+$("#bitcoin-receipt");
 
 
-      /* =======================================================
-         BITCOIN PRICE
-      ======================================================== */
+function shorten(
+value,
+start=10,
+end=8
+){
 
-      async function fetchPrice() {
+if(!value)return"—";
 
-        try {
+if(
+value.length<=start+end
+){
 
-          const response =
-            await fetch(
-              COINGECKO_URL,
-              {
-                headers: {
-                  accept:
-                    "application/json"
-                }
-              }
-            );
+return value;
 
+}
 
-          if (!response.ok) {
+return(
+value.slice(0,start)+
+"…"+
+value.slice(-end)
+);
 
-            throw new Error(
-              "API unavailable"
-            );
+}
 
-          }
 
+function formatBtc(value){
 
-          const data =
-            await response.json();
+return `${Number(value).toFixed(8)} BTC`;
 
+}
 
-          btcUsd =
-            data.bitcoin.usd;
 
+function formatMoney(
+value,
+currencyCode="USD"
+){
 
-          const change =
-            data.bitcoin.usd_24h_change;
+return new Intl.NumberFormat(
+undefined,
+{
+style:"currency",
+currency:currencyCode,
+minimumFractionDigits:2,
+maximumFractionDigits:2
+}
+).format(value);
 
+}
 
-          $("#btc-price").textContent =
-            `$${btcUsd.toLocaleString(
-              undefined,
-              {
-                maximumFractionDigits: 0
-              }
-            )}`;
 
+function openReceipt(index){
 
-          $("#btc-change").textContent =
-            `${
-              change >= 0
-                ? "+"
-                : ""
-            }${change.toFixed(2)}% today`;
+const transaction =
+txs[index];
 
+if(
+!transaction?.receipt ||
+!receiptModal
+){
 
-          $("#btc-change").style.color =
-            change >= 0
-              ? "#73c991"
-              : "#e78d8d";
+return;
 
+}
 
-          $("#price-status").textContent =
-            "● Live";
+receiptPreviousFocus =
+document.activeElement;
 
+const receipt =
+transaction.receipt;
 
-          $("#price-status").style.color =
-            "#73c991";
+const date =
+new Date(receipt.timestamp);
 
 
-          $("#price-timestamp")
-            .textContent =
-            `Last updated: ${
-              new Date()
-                .toLocaleTimeString()
-            }`;
+$("#receipt-total").textContent =
+`-${Number(
+receipt.amountBtc
+).toFixed(8)} BTC`;
 
+$("#receipt-txid").textContent =
+shorten(receipt.txid);
 
-          renderBalance();
+$("#receipt-txid").title =
+receipt.txid;
 
-        }
+$("#receipt-status").textContent =
+receipt.status;
 
-        catch (error) {
+$("#receipt-date").textContent =
+date.toLocaleString();
 
-          $("#btc-price").textContent =
-            "Price unavailable";
+$("#receipt-iso").textContent =
+date.toISOString();
 
+$("#receipt-wallet").textContent =
+receipt.walletLabel;
 
-          $("#btc-change").textContent =
-            "Market API temporarily unavailable";
+$("#receipt-sender").textContent =
+shorten(receipt.senderAddress);
 
+$("#receipt-sender").title =
+receipt.senderAddress;
 
-          $("#price-status").textContent =
-            "● Offline";
+$("#receipt-receiver").textContent =
+shorten(receipt.receiverAddress);
 
+$("#receipt-receiver").title =
+receipt.receiverAddress;
 
-          $("#price-status").style.color =
-            "#e6ad43";
+$("#receipt-amount").textContent =
+formatBtc(receipt.amountBtc);
 
+$("#receipt-rate").textContent =
+`1 BTC = ${formatMoney(
+receipt.exchangeRate,
+receipt.fiatCurrency
+)}`;
 
-          renderBalance();
+$("#receipt-fiat").textContent =
+formatMoney(
+receipt.fiatEquivalent,
+receipt.fiatCurrency
+);
 
-        }
+$("#receipt-fee").textContent =
+`-${formatBtc(receipt.feeBtc)}`;
 
-      }
+$("#receipt-confirmations").textContent =
+Number(
+receipt.confirmations
+).toLocaleString();
 
+$("#receipt-block").textContent =
+receipt.blockHeight
+?Number(
+receipt.blockHeight
+).toLocaleString()
+:"Unconfirmed";
 
-      /* =======================================================
-         QR CODE
-      ======================================================== */
 
-      function makeQR(
-        target,
-        text = DEMO_ADDRESS,
-        size = 164
-      ) {
+const qr =
+$("#receipt-qr");
 
-        if (!target) {
-          return;
-        }
+qr.innerHTML="";
 
+if(window.QRCode){
 
-        target.innerHTML = "";
+new QRCode(
+qr,
+{
+text:receipt.txid,
+width:150,
+height:150,
+colorDark:"#111827",
+colorLight:"#ffffff",
+correctLevel:QRCode.CorrectLevel.M
+}
+);
 
+}else{
 
-        if (window.QRCode) {
+qr.textContent =
+"QR unavailable";
 
-          new QRCode(
-            target,
-            {
-              text: text,
+}
 
-              width: size,
 
-              height: size,
+$("#bitcoin-receipt-title")
+.textContent =
+transaction.title==="Sent Bitcoin"
+?"Sent BTC"
+:"Bitcoin Transaction";
 
-              colorDark:
-                "#111827",
 
-              colorLight:
-                "#ffffff"
-            }
-          );
+receiptModal.showModal();
 
-        }
+requestAnimationFrame(()=>{
+$("#receipt-close")?.focus();
+});
 
-      }
+}
 
 
-      /* =======================================================
-         COPY ADDRESS
-      ======================================================== */
+/* =======================================================
+   RECEIPT CLOSE
+======================================================= */
 
-      function copyAddress() {
+$("#receipt-close")
+?.addEventListener(
+"click",
+()=>{
 
-        if (!navigator.clipboard) {
-          return;
-        }
+receiptModal.close();
 
+}
+);
 
-        navigator.clipboard
-          .writeText(
-            DEMO_ADDRESS
-          )
 
-          .then(() => {
+receiptModal
+?.addEventListener(
+"click",
+event=>{
 
-            const button =
-              $("#copy-address-2");
+if(event.target===receiptModal){
 
+receiptModal.close();
 
-            if (!button) {
-              return;
-            }
+}
 
+}
+);
 
-            const oldText =
-              button.textContent;
 
+receiptModal
+?.addEventListener(
+"close",
+()=>{
 
-            button.textContent =
-              "Copied!";
+if(
+receiptPreviousFocus &&
+typeof receiptPreviousFocus.focus==="function"
+){
 
+receiptPreviousFocus.focus();
 
-            setTimeout(
-              () => {
+}
 
-                button.textContent =
-                  oldText;
+}
+);
 
-              },
-              1200
-            );
 
-          })
+/* =======================================================
+   PRINT
+======================================================= */
 
-          .catch(() => {});
+$("#receipt-print")
+?.addEventListener(
+"click",
+()=>{
 
-      }
+window.print();
 
+}
+);
 
-      $("#copy-address")
-        .addEventListener(
-          "click",
-          copyAddress
-        );
 
+/* =======================================================
+   PNG
+======================================================= */
 
-      $("#copy-address-2")
-        .addEventListener(
-          "click",
-          copyAddress
-        );
+$("#receipt-png")
+?.addEventListener(
+"click",
+async()=>{
 
+const receipt =
+$("#bitcoin-receipt-content");
 
-      /* =======================================================
-         LOGIN
-      ======================================================== */
+const button =
+$("#receipt-png");
 
-      $("#login-form")
-        .addEventListener(
-          "submit",
-          event => {
+if(
+!receipt ||
+!window.html2canvas
+){
 
-            event.preventDefault();
+return;
 
+}
 
-            const email =
-              $("#email")
-                .value
-                .trim();
+const oldText =
+button.textContent;
 
+button.textContent =
+"Preparing…";
 
-            const password =
-              $("#password")
-                .value;
+button.disabled=true;
 
+try{
 
-            const error =
-              $("#login-error");
+const canvas =
+await html2canvas(
+receipt,
+{
+backgroundColor:"#ffffff",
+scale:Math.min(
+window.devicePixelRatio||1,
+2
+),
+useCORS:true
+}
+);
 
+const link =
+document.createElement("a");
 
-            error.textContent = "";
+link.download =
+"northstar-bitcoin-demo-receipt.png";
 
+link.href =
+canvas.toDataURL("image/png");
 
-            if (
-              !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
-                .test(email)
-            ) {
+link.click();
 
-              error.textContent =
-                "Please enter a valid email address.";
+}catch(_){
 
-              return;
+}finally{
 
-            }
+button.textContent =
+oldText;
 
+button.disabled=false;
 
-            if (password.length < 8) {
+}
 
-              error.textContent =
-                "Password must be at least 8 characters.";
+}
+);
 
-              return;
 
-            }
+/* =======================================================
+   INITIALIZATION
+======================================================= */
 
+renderTx();
 
-            if (
-              email !==
-                HARDCODED_EMAIL ||
+renderBalance();
 
-              password !==
-                HARDCODED_PASSWORD
-            ) {
+fetchPrice();
 
-              error.textContent =
-                "Invalid email or password. Please try again.";
+setInterval(
+fetchPrice,
+30000
+);
 
-              return;
+setTimeout(
+()=>{
+makeQR($("#qrcode"));
+},
+700
+);
 
-            }
 
+if(
+sessionStorage.getItem(
+"northstar_session"
+)==="active"
+){
 
-            sessionStorage.setItem(
-              "northstar_session",
-              "active"
-            );
+route("wallet");
 
+}
 
-            route("wallet");
+})();
 
-          }
-        );
-
-
-      /* =======================================================
-         LOGOUT
-      ======================================================== */
-
-      $("#logout")
-        .addEventListener(
-          "click",
-          () => {
-
-            sessionStorage.removeItem(
-              "northstar_session"
-            );
-
-
-            route("home");
-
-          }
-        );
-
-
-      /* =======================================================
-         SEND BLOCK
-      ======================================================== */
-
-      function showServiceUnavailable() {
-
-        const modal =
-          document.getElementById(
-            "service-unavailable-modal"
-          );
-
-
-        if (!modal) {
-          return;
-        }
-
-
-        if (
-          typeof modal.showModal ===
-          "function"
-        ) {
-
-          modal.showModal();
-
-
-          requestAnimationFrame(() => {
-
-            $("#service-error-close")
-              ?.focus();
-
-          });
-
-        }
-
-        else {
-
-          alert(
-            "This service is not available in your country"
-          );
-
-        }
-
-      }
-
-
-      $("#send-btn")
-        .addEventListener(
-          "click",
-          event => {
-
-            event.preventDefault();
-
-            event.stopPropagation();
-
-            showServiceUnavailable();
-
-          }
-        );
-
-
-      $("#service-error-close")
-        .addEventListener(
-          "click",
-          () => {
-
-            const modal =
-              document.getElementById(
-                "service-unavailable-modal"
-              );
-
-
-            if (modal) {
-              modal.close();
-            }
-
-
-            $("#send-btn")?.focus();
-
-          }
-        );
-
-
-      $("#service-unavailable-modal")
-        .addEventListener(
-          "close",
-          () => {
-
-            $("#send-btn")?.focus();
-
-          }
-        );
-
-
-      /* =======================================================
-         RECEIVE MODAL
-      ======================================================== */
-
-      document
-        .querySelectorAll(
-          "[data-modal]"
-        )
-        .forEach(button => {
-
-          button.addEventListener(
-            "click",
-            () => {
-
-              const dialog =
-                document.getElementById(
-                  `${button.dataset.modal}-modal`
-                );
-
-
-              if (!dialog) {
-                return;
-              }
-
-
-              dialog.showModal();
-
-
-              if (
-                button.dataset.modal ===
-                "receive"
-              ) {
-
-                makeQR(
-                  $("#modal-qr")
-                );
-
-
-                $("#modal-address")
-                  .textContent =
-                  DEMO_ADDRESS;
-
-              }
-
-            }
-          );
-
-        });
-
-
-      /* =======================================================
-         SEND FEE
-      ======================================================== */
-
-      $("#fee")
-        .addEventListener(
-          "input",
-          event => {
-
-            $("#fee-output")
-              .textContent =
-              `${event.target.value} sat/vB`;
-
-          }
-        );
-
-
-      /* =======================================================
-         RECEIVE COPY
-      ======================================================== */
-
-      $("#modal-copy")
-        .addEventListener(
-          "click",
-          () => {
-
-            navigator.clipboard?.writeText(
-              DEMO_ADDRESS
-            );
-
-          }
-        );
-
-
-      /* =======================================================
-         RECEIPT
-      ======================================================== */
-
-      const receiptModal =
-        document.getElementById(
-          "bitcoin-receipt"
-        );
-
-
-      function shorten(
-        value,
-        start = 10,
-        end = 8
-      ) {
-
-        if (!value) {
-          return "—";
-        }
-
-
-        if (
-          value.length <=
-          start + end
-        ) {
-
-          return value;
-
-        }
-
-
-        return (
-          value.slice(0, start) +
-          "…" +
-          value.slice(-end)
-        );
-
-      }
-
-
-      function formatBtc(value) {
-
-        return `${
-          Number(value).toFixed(8)
-        } BTC`;
-
-      }
-
-
-      function formatMoney(
-        value,
-        currencyCode = "USD"
-      ) {
-
-        return new Intl.NumberFormat(
-          undefined,
-          {
-            style: "currency",
-
-            currency:
-              currencyCode,
-
-            minimumFractionDigits:
-              2,
-
-            maximumFractionDigits:
-              2
-          }
-        ).format(value);
-
-      }
-
-
-      /*
-        UPDATED RECEIPT FUNCTION
-
-        It can now open the receipt for:
-        - $72,000 transaction
-        - $200,000 transaction
-
-        The transaction index is passed into
-        this function.
-      */
-
-      function openReceipt(index) {
-
-        const transaction =
-          txs[index];
-
-
-        if (
-          !transaction?.receipt ||
-          !receiptModal
-        ) {
-
-          return;
-
-        }
-
-
-        receiptPreviousFocus =
-          document.activeElement;
-
-
-        const receipt =
-          transaction.receipt;
-
-
-        const date =
-          new Date(
-            receipt.timestamp
-          );
-
-
-        /* Main amount */
-
-        $("#receipt-total")
-          .textContent =
-          `-${Number(
-            receipt.amountBtc
-          ).toFixed(8)} BTC`;
-
-
-        /* Transaction ID */
-
-        $("#receipt-txid")
-          .textContent =
-          shorten(
-            receipt.txid
-          );
-
-
-        $("#receipt-txid")
-          .title =
-          receipt.txid;
-
-
-        /* Status */
-
-        $("#receipt-status")
-          .textContent =
-          receipt.status;
-
-
-        /* Local timestamp */
-
-        $("#receipt-date")
-          .textContent =
-          date.toLocaleString();
-
-
-        /* ISO timestamp */
-
-        $("#receipt-iso")
-          .textContent =
-          date.toISOString();
-
-
-        /* Wallet */
-
-        $("#receipt-wallet")
-          .textContent =
-          receipt.walletLabel;
-
-
-        /* Sender */
-
-        $("#receipt-sender")
-          .textContent =
-          shorten(
-            receipt.senderAddress
-          );
-
-
-        $("#receipt-sender")
-          .title =
-          receipt.senderAddress;
-
-
-        /* Receiver */
-
-        $("#receipt-receiver")
-          .textContent =
-          shorten(
-            receipt.receiverAddress
-          );
-
-
-        $("#receipt-receiver")
-          .title =
-          receipt.receiverAddress;
-
-
-        /* BTC amount */
-
-        $("#receipt-amount")
-          .textContent =
-          formatBtc(
-            receipt.amountBtc
-          );
-
-
-        /* Exchange rate */
-
-        $("#receipt-rate")
-          .textContent =
-          `1 BTC = ${
-            formatMoney(
-              receipt.exchangeRate,
-              receipt.fiatCurrency
-            )
-          }`;
-
-
-        /* Fiat equivalent */
-
-        $("#receipt-fiat")
-          .textContent =
-          formatMoney(
-            receipt.fiatEquivalent,
-            receipt.fiatCurrency
-          );
-
-
-        /* Network fee */
-
-        $("#receipt-fee")
-          .textContent =
-          `-${formatBtc(
-            receipt.feeBtc
-          )}`;
-
-
-        /* Confirmations */
-
-        $("#receipt-confirmations")
-          .textContent =
-          Number(
-            receipt.confirmations
-          ).toLocaleString();
-
-
-        /* Block */
-
-        $("#receipt-block")
-          .textContent =
-          receipt.blockHeight
-            ? Number(
-                receipt.blockHeight
-              ).toLocaleString()
-            : "Unconfirmed";
-
-
-        /* QR code */
-
-        const qr =
-          $("#receipt-qr");
-
-
-        qr.innerHTML = "";
-
-
-        if (window.QRCode) {
-
-          new QRCode(
-            qr,
-            {
-
-              text:
-                receipt.txid,
-
-              width:
-                150,
-
-              height:
-                150,
-
-              colorDark:
-                "#111827",
-
-              colorLight:
-                "#ffffff",
-
-              correctLevel:
-                QRCode.CorrectLevel.M
-
-            }
-          );
-
-        }
-
-        else {
-
-          qr.textContent =
-            "QR unavailable";
-
-        }
-
-
-        /* Update receipt title based on transaction */
-
-        $("#bitcoin-receipt-title")
-          .textContent =
-          transaction.title ===
-            "Sent Bitcoin"
-            ? "Sent BTC"
-            : "Bitcoin Transaction";
-
-
-        /* Open modal */
-
-        receiptModal.showModal();
-
-
-        requestAnimationFrame(() => {
-
-          $("#receipt-close")
-            ?.focus();
-
-        });
-
-      }
-
-
-      /* =======================================================
-         RECEIPT CLOSE
-      ======================================================== */
-
-      $("#receipt-close")
-        .addEventListener(
-          "click",
-          () => {
-
-            receiptModal.close();
-
-          }
-        );
-
-
-      /*
-        Clicking outside the white receipt
-        closes the dialog.
-      */
-
-      receiptModal
-        .addEventListener(
-          "click",
-          event => {
-
-            if (
-              event.target ===
-              receiptModal
-            ) {
-
-              receiptModal.close();
-
-            }
-
-          }
-        );
-
-
-      /*
-        Restore keyboard focus after closing.
-      */
-
-      receiptModal
-        .addEventListener(
-          "close",
-          () => {
-
-            if (
-              receiptPreviousFocus &&
-              typeof
-                receiptPreviousFocus.focus ===
-                  "function"
-            ) {
-
-              receiptPreviousFocus.focus();
-
-            }
-
-          }
-        );
-
-
-      /* =======================================================
-         PRINT / PDF
-      ======================================================== */
-
-      $("#receipt-print")
-        .addEventListener(
-          "click",
-          () => {
-
-            window.print();
-
-          }
-        );
-
-
-      /* =======================================================
-         PNG DOWNLOAD
-      ======================================================== */
-
-      $("#receipt-png")
-        .addEventListener(
-          "click",
-          async () => {
-
-            const receipt =
-              document.getElementById(
-                "bitcoin-receipt-content"
-              );
-
-
-            const button =
-              $("#receipt-png");
-
-
-            if (
-              !receipt ||
-              !window.html2canvas
-            ) {
-
-              return;
-
-            }
-
-
-            const oldText =
-              button.textContent;
-
-
-            button.textContent =
-              "Preparing…";
-
-
-            button.disabled = true;
-
-
-            try {
-
-              const canvas =
-                await html2canvas(
-                  receipt,
-                  {
-
-                    backgroundColor:
-                      "#ffffff",
-
-                    scale:
-                      Math.min(
-                        window.devicePixelRatio ||
-                          1,
-                        2
-                      ),
-
-                    useCORS:
-                      true
-
-                  }
-                );
-
-
-              const link =
-                document.createElement(
-                  "a"
-                );
-
-
-              link.download =
-                "northstar-bitcoin-demo-receipt.png";
-
-
-              link.href =
-                canvas.toDataURL(
-                  "image/png"
-                );
-
-
-              link.click();
-
-            }
-
-            catch (_) {
-
-              /*
-                Deliberately don't log transaction
-                information to the console.
-              */
-
-            }
-
-            finally {
-
-              button.textContent =
-                oldText;
-
-              button.disabled =
-                false;
-
-            }
-
-          }
-        );
-
-
-      /* =======================================================
-         INITIALIZATION
-      ======================================================== */
-
-      renderTx();
-
-      renderBalance();
-
-      fetchPrice();
-
-
-      setInterval(
-        fetchPrice,
-        30000
-      );
-
-
-      setTimeout(
-        () => {
-
-          makeQR(
-            $("#qrcode")
-          );
-
-        },
-        700
-      );
-
-
-      /*
-        Restore wallet if a demo session exists.
-      */
-
-      if (
-        sessionStorage.getItem(
-          "northstar_session"
-        ) === "active"
-      ) {
-
-        route("wallet");
-
-      }
-
-    })();
-
-  </script>
+</script>
 
 </body>
 </html>
